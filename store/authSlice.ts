@@ -37,6 +37,33 @@ export const register = createAsyncThunk(
   }
 );
 
+export const updateUser = createAsyncThunk(
+  'auth/updateUser',
+  async ({ userData }: {  userData: any }) => {
+    const token = localStorage.getItem('access_token');
+    const response = await axios.patch('http://localhost:8080/user', userData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const updatedData = response.data;
+    const storedData = JSON.parse(localStorage.getItem("userData") || "{}");
+
+    // Store only updated keys
+    const changedData = Object.keys(updatedData).reduce((acc, key) => {
+      if (updatedData[key] !== storedData[key]) {
+        acc[key] = updatedData[key];
+      }
+      return acc;
+    }, {} as Record<string, any>);
+
+    localStorage.setItem("userData", JSON.stringify({ ...storedData, ...changedData }));
+    return response.data; // Assuming the response contains updated user data
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
@@ -70,6 +97,17 @@ const authSlice = createSlice({
         // Handle successful registration, e.g., store user data or token
       })
       .addCase(register.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message || null;
+      })
+      .addCase(updateUser.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.user = action.payload; // Update the user data in the store
+      })
+      .addCase(updateUser.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message || null;
       });

@@ -18,13 +18,16 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (token) {
+      localStorage.setItem('access_token', token);
       dispatch(fetchUserData(token));
     }
   }, [token, dispatch]);
 
   useEffect(() => {
     if (user) {
+      
       localStorage.setItem('user', JSON.stringify(user));
+      
       router.push('/');
     }
   }, [user, router]);

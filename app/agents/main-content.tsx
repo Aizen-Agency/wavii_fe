@@ -1,14 +1,30 @@
 "use client"
 
+import { useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { fetchAgents, deleteAgent, setSelectedAgent } from "@/store/agentSlice"
 import { useRouter } from "next/navigation"
-import { LayoutGrid, Grid2X2 } from "lucide-react"
+import { LayoutGrid, Grid2X2, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { AppDispatch } from "@/store/store"
+import LoadingOverlay from "@/components/loadingOverlay"
 
 export function MainContent() {
   const router = useRouter()
+  const dispatch = useDispatch<AppDispatch>()
+  const { agents, status, error } = useSelector((state: any) => state.agent)
+
+  useEffect(() => {
+    dispatch(fetchAgents())
+  }, [dispatch])
+
+  const handleDelete = (id: number) => {
+    dispatch(deleteAgent(id))
+  }
 
   return (
     <div className="flex-1 overflow-auto">
+      {status === "loading" && <LoadingOverlay />}
       <div className="p-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold">Your Agents</h1>
@@ -36,8 +52,38 @@ export function MainContent() {
           </div>
         </div>
 
-        {/* Empty state or agent list would go here */}
-        <div className="h-96 flex items-center justify-center text-gray-400">No agents created yet</div>
+        {/* Render agent list in grid format */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {status === 'loading' && <p>Loading...</p>}
+          {status === 'failed' && <p>Error: {error.message || JSON.stringify(error)}</p>}
+          {status === 'succeeded' && agents.map((agent: any) => (
+            <div
+              key={agent.id}
+              className="relative border p-4 rounded-lg shadow-sm cursor-pointer"
+              onClick={() => {
+                dispatch(setSelectedAgent(agent))
+                router.push(`/agent/${agent.id}`)
+              }}
+            >
+              <h2 className="text-lg font-semibold">{agent.name}</h2>
+              <p className="text-gray-500">{agent.website}</p>
+              <p className="text-gray-500">Type: {agent.agent_type}</p>
+              <p className="text-gray-500">Goal: {agent.main_goal}</p>
+              <p className="text-gray-500">
+                Created At: {new Date(agent.created_at).toLocaleDateString("en-GB")}
+              </p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(agent.id);
+                }}
+                className="absolute bottom-2 right-2 p-1 text-red-600 hover:text-red-800"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

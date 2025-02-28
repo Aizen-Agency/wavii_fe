@@ -79,7 +79,7 @@ export function MainContent() {
           </div>
         </div>
 
-        {/* Render agent list in grid format */}
+        {/* Render agent list in grid f ormat */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {status === 'loading' && <p>Loading...</p>}
           {status === 'failed' && <p>Error: {error || JSON.stringify(error)}</p>}

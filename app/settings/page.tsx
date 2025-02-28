@@ -10,7 +10,10 @@ import { Input } from "@/components/ui/input"
 import type { AppDispatch } from "@/store/store"
 import { updateUser } from "@/store/authSlice"
 
-// ... existing code ...
+// Define a type for the user data
+type UserData = {
+  [key: string]: string | number | object | boolean;
+};
 
 export default function QuickCreatePage() {
   const router = useRouter()
@@ -53,7 +56,7 @@ export default function QuickCreatePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const userData = {
+    const userData: UserData = {
       username: formData.name,
       email: formData.email,
       company_name: formData.companyName,
@@ -70,16 +73,16 @@ export default function QuickCreatePage() {
       const resultAction = await dispatch(updateUser({ userData }))
 
       if (updateUser.fulfilled.match(resultAction)) {
-        const updatedData = resultAction.payload
-        const storedData = JSON.parse(localStorage.getItem("userData") || "{}")
+        const updatedData: UserData = resultAction.payload
+        const storedData: UserData = JSON.parse(localStorage.getItem("userData") || "{}")
 
         // Store only updated keys
-        const changedData = Object.keys(updatedData).reduce((acc, key) => {
+        const changedData = Object.keys(updatedData).reduce((acc: UserData, key: string) => {
           if (updatedData[key] !== storedData[key]) {
             acc[key] = updatedData[key]
           }
           return acc
-        }, {} as Record<string, any>)
+        }, {})
 
         localStorage.setItem("userData", JSON.stringify({ ...storedData, ...changedData }))
         alert("User updated successfully!")

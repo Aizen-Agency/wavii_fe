@@ -6,7 +6,6 @@ import { fetchAgentById, updateAgent } from '@/store/agentSlice'
 import { RootState } from '@/store/store'
 import { useEffect } from 'react'
 import { AppDispatch } from '@/store/store'
-import { useRouter } from 'next/navigation'
 
 interface AgentBasicsProps {
   formData: {

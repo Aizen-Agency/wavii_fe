@@ -6,7 +6,7 @@ import { fetchAgents, deleteAgent, setSelectedAgent } from "@/store/agentSlice"
 import { useRouter } from "next/navigation"
 import { LayoutGrid, Grid2X2, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { AppDispatch } from "@/store/store"
+import { AppDispatch, RootState } from "@/store/store"
 import LoadingOverlay from "@/components/loadingOverlay"
 
 interface Agent {
@@ -39,7 +39,7 @@ interface Agent {
 export function MainContent() {
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
-  const { agents, status, error } = useSelector((state: any) => state.agent)
+  const { agents, status, error } = useSelector((state: RootState) => state.agent)
 
   useEffect(() => {
     dispatch(fetchAgents())
@@ -82,7 +82,7 @@ export function MainContent() {
         {/* Render agent list in grid format */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {status === 'loading' && <p>Loading...</p>}
-          {status === 'failed' && <p>Error: {error.message || JSON.stringify(error)}</p>}
+          {status === 'failed' && <p>Error: {error || JSON.stringify(error)}</p>}
           {status === 'succeeded' && agents.map((agent: Agent) => (
             <div
               key={agent.id}

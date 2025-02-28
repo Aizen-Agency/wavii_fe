@@ -1,7 +1,6 @@
 'use client';
  // Ensure this layout is a client component if it uses Redux
 import type React from "react"
-import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Provider } from 'react-redux'

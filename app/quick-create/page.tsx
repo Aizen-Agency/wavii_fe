@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { createAgent } from "@/store/agentSlice"
-import type { AppDispatch } from "@/store/store"
+import type { AppDispatch, RootState } from "@/store/store"
 import LoadingOverlay from "@/components/loadingOverlay"
 import ErrorPopup from "@/components/errorPopop"
 
@@ -20,7 +20,7 @@ export default function QuickCreatePage() {
     companyWebsite: "",
   })
   const [showError, setShowError] = useState<string | null>(null)
-  const status = useSelector((state: any) => state.agent.status)
+  const status = useSelector((state: RootState) => state.agent.status)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

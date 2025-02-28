@@ -1,6 +1,5 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
 import { useDispatch } from 'react-redux';
 import { fetchAgentById, updateAgent } from '@/store/agentSlice';
 import { AppDispatch } from '@/store/store';
@@ -16,7 +15,7 @@ interface VoicePersonalityProps {
   updateFormData: (data: Partial<VoicePersonalityProps["formData"]>) => void
 }
 
-export function VoicePersonality({ formData, updateFormData }: VoicePersonalityProps) {
+export function VoicePersonality({ formData }: VoicePersonalityProps) {
   const dispatch = useDispatch<AppDispatch>();
 
   const updateAgentPersonality = async (agentId: number, newPersonality: string) => {
@@ -24,7 +23,7 @@ export function VoicePersonality({ formData, updateFormData }: VoicePersonalityP
     const fetchResult = await dispatch(fetchAgentById(agentId));
 
     if (fetchResult.type === 'agent/fetchAgentById/fulfilled') {
-      let agent = fetchResult.payload;
+      const agent = fetchResult.payload;
 
       // Create a new object without modifying the original agent
       const { prompt: agentprompt, ...restOfAgent } = agent;

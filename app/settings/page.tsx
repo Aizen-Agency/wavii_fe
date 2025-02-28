@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation"
 import { useDispatch } from "react-redux"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { createAgent } from "@/store/agentSlice"
+
 import type { AppDispatch } from "@/store/store"
 import { updateUser } from "@/store/authSlice"
 
@@ -35,7 +34,7 @@ export default function QuickCreatePage() {
     // Load existing data from local storage
     const storedData = JSON.parse(localStorage.getItem("userData") || "{}")
     // Initialize formData with stored data
-    setFormData((prev) => ( {
+    setFormData(() => ( {
         name: storedData.name,
         companyPrompt: storedData.company_prompt,
         companyWebsite: storedData.company_website,

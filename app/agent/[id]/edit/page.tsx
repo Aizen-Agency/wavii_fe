@@ -11,7 +11,7 @@ import { ConversationFlow } from "@/components/agent-form/conversation-flow"
 import { Integration } from "@/components/agent-form/integration"
 import { useParams } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
-import { fetchAgents, setSelectedAgent } from "@/store/agentSlice"
+import { fetchAgents } from "@/store/agentSlice"
 import { AppDispatch, RootState } from "@/store/store"
 import { useRouter } from "next/navigation"
 
@@ -39,9 +39,10 @@ export default function EditAgentPage() {
     mainGoal: "Schedule meetings with potential clients",
     accent: "American",
     workingHours: "",
+    cal_key: "",
+    cal_event_id: "",
   })
-  const [isCalling, setIsCalling] = useState(false);
-  const [callId, setCallId] = useState<string | null>(null);
+
 
   const handleGoBack = () => {
     router.push(`/agent/${formData.id}`)
@@ -61,6 +62,8 @@ export default function EditAgentPage() {
         mainGoal: selectedAgent.main_goal,
         accent: selectedAgent.accent,
         workingHours: "", // Assuming workingHours is not part of the agent data
+        cal_key: selectedAgent.cal_key,
+        cal_event_id: selectedAgent.cal_event_id.toString(),
       });
     }
   }, [selectedAgent, agentId]);
@@ -93,7 +96,7 @@ export default function EditAgentPage() {
       case 4:
         return <ConversationFlow />
       case 5:
-        return <Integration formData={formData as any} updateFormData={updateFormData} />
+        return <Integration formData={formData} updateFormData={updateFormData} />
       default:
         return null
     }

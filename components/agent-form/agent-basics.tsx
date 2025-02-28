@@ -20,7 +20,6 @@ interface AgentBasicsProps {
 export function AgentBasics({ formData, updateFormData }: AgentBasicsProps) {
   const dispatch = useDispatch<AppDispatch>()
   const selectedAgent = useSelector((state: RootState) => state.agent.selectedAgent)
-  const router = useRouter()
 
   useEffect(() => {
     if (formData.id) {

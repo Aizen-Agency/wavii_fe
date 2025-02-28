@@ -9,6 +9,33 @@ import { Button } from "@/components/ui/button"
 import { AppDispatch } from "@/store/store"
 import LoadingOverlay from "@/components/loadingOverlay"
 
+interface Agent {
+  id: number;
+  user_id: number;
+  name: string;
+  agent_type: string;
+  main_goal: string;
+  language: string;
+  voice: string;
+  personality: string;
+  website: string;
+  prompt: string;
+  initial_message: string;
+  inbound_enabled: boolean;
+  google_calendar_id: string;
+  total_call_duration: number;
+  total_calls: number;
+  accent: string;
+  cal_key: string;
+  twilio_sid: string;
+  twilio_auth: string;
+  retell_agent_id: string;
+  retell_llm_id: string;
+  created_at: string;
+  agent_kb_ids: string[];
+  cal_event_id: number;
+}
+
 export function MainContent() {
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
@@ -56,7 +83,7 @@ export function MainContent() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {status === 'loading' && <p>Loading...</p>}
           {status === 'failed' && <p>Error: {error.message || JSON.stringify(error)}</p>}
-          {status === 'succeeded' && agents.map((agent: any) => (
+          {status === 'succeeded' && agents.map((agent: Agent) => (
             <div
               key={agent.id}
               className="relative border p-4 rounded-lg shadow-sm cursor-pointer"

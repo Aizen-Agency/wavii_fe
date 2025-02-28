@@ -7,6 +7,14 @@ import { fetchAgentById } from '@/store/agentSlice'
 import { RootState } from '@/store/store'
 import { AppDispatch } from '@/store/store'
 
+interface KnowledgeBase {
+  knowledge_base_id: number;
+  knowledge_base_sources: {
+    filename: string;
+    file_url: string;
+  }[];
+}
+
 
 interface KnowledgeBaseProps {
     formData: {
@@ -19,10 +27,9 @@ interface KnowledgeBaseProps {
   }
   
 
-export function KnowledgeBase({ formData, updateFormData }: KnowledgeBaseProps) {
+export function KnowledgeBase({ formData }: KnowledgeBaseProps) {
   const dispatch = useDispatch<AppDispatch>()
   const { knowledgeBases, status, error } = useSelector((state: RootState) => state.knowledgeBase)
-  const agent = useSelector((state: RootState) => state.agent.selectedAgent)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   useEffect(() => {
@@ -82,11 +89,11 @@ export function KnowledgeBase({ formData, updateFormData }: KnowledgeBaseProps) 
         )}
         {status === 'succeeded' && knowledgeBases.length > 0 && (
           <ul>
-            {knowledgeBases.map((kb: any) => (
+            {knowledgeBases.map((kb: KnowledgeBase) => (
               <li key={kb.knowledge_base_id}>
                 {/* <h4 className="font-medium">{kb.knowledge_base_id}</h4> */}
                 <ul>
-                  {(kb.knowledge_base_sources || []).map((source: any) => (
+                  {(kb.knowledge_base_sources || []).map((source: KnowledgeBase['knowledge_base_sources'][number]) => (
                     <li key={source.filename}>
                       <a href={source.file_url} className="text-blue-500 hover:underline">
                         {source.filename}

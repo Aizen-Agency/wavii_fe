@@ -1,21 +1,65 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { useDispatch } from 'react-redux';
+import { fetchAgentById, updateAgent } from '@/store/agentSlice';
+import { AppDispatch } from '@/store/store';
+
 
 interface VoicePersonalityProps {
   formData: {
-    voiceType: string
+    id: number
+   
     personality: string
-    mainGoal: string
-    accent: string
+   
   }
   updateFormData: (data: Partial<VoicePersonalityProps["formData"]>) => void
 }
 
 export function VoicePersonality({ formData, updateFormData }: VoicePersonalityProps) {
+  const dispatch = useDispatch<AppDispatch>();
+
+  const updateAgentPersonality = async (agentId: number, newPersonality: string) => {
+    // Fetch the agent by ID
+    const fetchResult = await dispatch(fetchAgentById(agentId));
+
+    if (fetchResult.type === 'agent/fetchAgentById/fulfilled') {
+      let agent = fetchResult.payload;
+
+      // Create a new object without modifying the original agent
+      const { prompt: agentprompt, ...restOfAgent } = agent;
+
+      // Update the agent's personality and prompt
+      const personalityRegex = /You are a (Professional|Casual|Friendly) voice assistant\./;
+      let updatedPrompt;
+
+      if (personalityRegex.test(agentprompt)) {
+        updatedPrompt = agentprompt.replace(personalityRegex, `You are a ${newPersonality} voice assistant.`);
+      } else {
+        updatedPrompt = `You are a ${newPersonality} voice assistant. ${agentprompt}`;
+      }
+
+      const updatedAgent = { 
+        ...restOfAgent, 
+        personality: newPersonality,
+        prompt: updatedPrompt
+      };
+      console.log(updatedAgent);
+      const updateResult = await dispatch(updateAgent(updatedAgent));
+
+      if (updateResult.type === 'agent/updateAgent/fulfilled') {
+        console.log('Agent personality and prompt updated successfully');
+      } else {
+        console.error('Failed to update agent personality and prompt:', updateResult.payload);
+      }
+    } else {
+      console.error('Failed to fetch agent:', fetchResult.payload);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
+      {/* <div className="space-y-2">
         <Label>Voice Type</Label>
         <Select value={formData.voiceType} onValueChange={(value: string) => updateFormData({ voiceType: value })}>
           <SelectTrigger>
@@ -27,11 +71,11 @@ export function VoicePersonality({ formData, updateFormData }: VoicePersonalityP
             <SelectItem value="Fable">Fable</SelectItem>
           </SelectContent>
         </Select>
-      </div>
+      </div> */}
 
       <div className="space-y-2">
         <Label>Personality</Label>
-        <Select value={formData.personality} onValueChange={(value: string) => updateFormData({ personality: value })}>
+        <Select value={formData.personality} onValueChange={(value: string) => updateAgentPersonality(formData.id, value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select personality" />
           </SelectTrigger>
@@ -42,7 +86,7 @@ export function VoicePersonality({ formData, updateFormData }: VoicePersonalityP
           </SelectContent>
         </Select>
       </div>
-
+{/* 
       <div className="space-y-2">
         <Label>Main Goal</Label>
         <Select value={formData.mainGoal} onValueChange={(value: string) => updateFormData({ mainGoal: value })}>
@@ -57,9 +101,9 @@ export function VoicePersonality({ formData, updateFormData }: VoicePersonalityP
             <SelectItem value="Provide customer support">Provide customer support</SelectItem>
           </SelectContent>
         </Select>
-      </div>
+      </div> */}
 
-      <div className="space-y-2">
+      {/* <div className="space-y-2">
         <Label>Accent</Label>
         <Select value={formData.accent} onValueChange={(value: string) => updateFormData({ accent: value })}>
           <SelectTrigger>
@@ -71,14 +115,14 @@ export function VoicePersonality({ formData, updateFormData }: VoicePersonalityP
             <SelectItem value="Australian">Australian</SelectItem>
           </SelectContent>
         </Select>
-      </div>
+      </div> */}
 
-      <div className="flex gap-4">
+      {/* <div className="flex gap-4">
         <Button className="flex-1 bg-purple-600 hover:bg-purple-700">Save Changes</Button>
         <Button variant="outline" className="flex-1">
           Play Sample
         </Button>
-      </div>
+      </div> */}
     </div>
   )
 }

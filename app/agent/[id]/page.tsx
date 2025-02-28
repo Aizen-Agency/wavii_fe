@@ -8,16 +8,21 @@ import { useSelector, useDispatch } from "react-redux"
 import { updateAgent, updateSelectedAgent, fetchAgentById } from "@/store/agentSlice"
 import { AppDispatch, RootState } from "@/store/store"
 import { fetchVoices } from "@/store/voiceSlice"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { RetellWebClient } from "retell-client-js-sdk"
+
+const retellWebClient = new RetellWebClient();
 
 export default function CreateAgentPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const agents = useSelector((state: RootState) => state.agent.agents);
-  console.log(agents);
   const { id: agentId } = useParams(); // Use useParams to get the agentId
   const agent = agents.find((agent) => agent.id === Number(agentId));
   const voices = useSelector((state: RootState) => state.voice.voices);
+  const [isCalling, setIsCalling] = useState(false);
+  const [callId, setCallId] = useState<string | null>(null);
+  const selectedAgent = useSelector((state: RootState) => state.agent.selectedAgent);
 
   useEffect(() => {
     dispatch(fetchVoices());
@@ -47,6 +52,77 @@ export default function CreateAgentPage() {
     return <p>Loading...</p>;
   }
 
+
+  
+  interface RegisterCallResponse {
+    access_token: string;
+    call_id?: string;
+  }
+
+    // Register call using selected agent
+    async function registerCall(agentId: string): Promise<RegisterCallResponse> {
+        try {
+          const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/create-web-call", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ agent_id: agentId })
+          });
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+          }
+          const data: RegisterCallResponse = await response.json();
+          return data;
+        } catch (err) {
+          console.error(err);
+          throw new Error("Register call failed");
+        }
+      }
+  const toggleConversation = async () => {
+    console.log(isCalling);
+    if (!selectedAgent?.retell_agent_id) {
+      console.error("Please select an agent first.");
+      return;
+    }
+    if (isCalling) {
+      // Implement the logic to stop the call
+      console.log(retellWebClient.isAgentTalking);
+      retellWebClient.stopCall();
+      console.log(retellWebClient.isAgentTalking);
+      console.log("Stopping call");
+      setIsCalling(false);
+      // Wait 3 seconds after the call ends to fetch call details
+
+      if (callId) {
+        setTimeout(() => {
+          // Implement the logic to fetch call details
+          console.log("Fetching call details");
+        }, 3000);
+      }
+
+    } else {
+      try {
+        // Implement the logic to register a call
+        const registerCallResponse = await registerCall(selectedAgent?.retell_agent_id);
+        if (registerCallResponse.access_token) {
+          // Save call_id if returned by API
+          if (registerCallResponse.call_id) {
+            setCallId(registerCallResponse.call_id);
+          }
+          retellWebClient
+            .startCall({ accessToken: registerCallResponse.access_token })
+            .catch(console.error);
+        console.log("Starting call");
+        setIsCalling(true);
+      }
+     } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+  
+
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-6xl mx-auto">
@@ -70,7 +146,7 @@ export default function CreateAgentPage() {
           <Card className="p-8 flex flex-col items-center justify-center min-h-[500px]">
             {/* Microphone Button */}
             <div className="relative mb-8">
-              <div className="w-48 h-48 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-1">
+              <div className="w-48 h-48 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-1" onClick={toggleConversation}>
                 <button className="w-full h-full rounded-full bg-white flex items-center justify-center hover:bg-gray-50 transition-colors">
                   <svg viewBox="0 0 24 24" className="w-12 h-12 text-purple-600" fill="none" stroke="currentColor">
                     <path

@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation"
 
 const steps = [
   { id: 1, name: "Agent Basics" },
-  { id: 2, name: "Voice & Personality" },
+  { id: 2, name: "Personality" },
   { id: 3, name: "Knowledge Base" },
   { id: 4, name: "Conversation Flow" },
   { id: 5, name: "Integration & Settings" },
@@ -29,6 +29,7 @@ export default function EditAgentPage() {
   const selectedAgent = useSelector((state: RootState) => state.agent.selectedAgent);
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1)
+
   const [formData, setFormData] = useState({
     id: 0,
     initialMessage: "",
@@ -39,6 +40,9 @@ export default function EditAgentPage() {
     accent: "American",
     workingHours: "",
   })
+  const [isCalling, setIsCalling] = useState(false);
+  const [callId, setCallId] = useState<string | null>(null);
+
   const handleGoBack = () => {
     router.push(`/agent/${formData.id}`)
   }
@@ -85,15 +89,16 @@ export default function EditAgentPage() {
       case 2:
         return <VoicePersonality formData={formData} updateFormData={updateFormData} />
       case 3:
-        return <KnowledgeBase />
+        return <KnowledgeBase formData={formData} updateFormData={updateFormData} />
       case 4:
         return <ConversationFlow />
       case 5:
-        return <Integration formData={formData} updateFormData={updateFormData} />
+        return <Integration formData={formData as any} updateFormData={updateFormData} />
       default:
         return null
     }
   }
+
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -122,7 +127,7 @@ export default function EditAgentPage() {
           </div>
 
           <div className="relative">
-            <Progress value={(currentStep / steps.length) * 100} className="h-1 absolute -top-6 left-0 right-0" />
+            <Progress value={((currentStep - 1) / steps.length) * 100} className="h-1 absolute -top-6 left-0 right-0" />
             {renderStep()}
           </div>
 
@@ -132,10 +137,11 @@ export default function EditAgentPage() {
             </Button>
             <Button
               className="bg-purple-600 hover:bg-purple-700"
-              onClick={currentStep === steps.length ? undefined : handleNext}
+              onClick={currentStep === steps.length ? () => router.push(`/agent/${agentId}`) : handleNext}
             >
               {currentStep === steps.length ? "Finish" : "Next"}
             </Button>
+           
           </div>
         </div>
       </div>

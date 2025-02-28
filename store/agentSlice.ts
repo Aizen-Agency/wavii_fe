@@ -26,6 +26,7 @@ interface Agent {
   retell_llm_id: string;
   created_at: string;
   agent_kb_ids: string[];
+  cal_event_id: number;
 }
 
 interface ErrorResponse {
@@ -37,6 +38,12 @@ interface AgentState {
   selectedAgent: Agent | null;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
+}
+
+interface IntegrateCalendarParams {
+  agent_id: number;
+  cal_api_key: string;
+  event_type_id: number;
 }
 
 export const createAgent = createAsyncThunk(
@@ -129,6 +136,37 @@ export const fetchAgentById = createAsyncThunk(
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
+    }
+  }
+);
+
+// Thunk to integrate calendar
+export const integrateCalendar = createAsyncThunk(
+  'agent/integrateCalendar',
+  async ({ agent_id, cal_api_key, event_type_id }: IntegrateCalendarParams, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`http://localhost:8080/agents/${agent_id}/integrate-calendar`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cal_api_key,
+          event_type_id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to integrate calendar');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      const err = error as Error;
+      return rejectWithValue(err.message);
     }
   }
 );

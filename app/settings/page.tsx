@@ -107,7 +107,7 @@ export default function QuickCreatePage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <div className="text-sm font-medium">Retell Key</div>
             <Input
               type="text"
@@ -120,7 +120,7 @@ export default function QuickCreatePage() {
                 }))
               }
             />
-          </div>
+          </div> */}
 
           <div className="space-y-2">
             <div className="text-sm font-medium">Email</div>

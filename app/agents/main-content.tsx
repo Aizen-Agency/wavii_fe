@@ -64,7 +64,8 @@ export function MainContent() {
             >
               <span className="mr-2">+</span> Quick Create
             </Button>
-            <Button className="bg-purple-600 hover:bg-purple-700">
+            <Button className="bg-purple-600 hover:bg-purple-700"
+            onClick={() => router.push("/agent/0")}>
               <span className="mr-2">+</span> Create New Agent
             </Button>
 

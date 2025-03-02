@@ -46,12 +46,21 @@ interface IntegrateCalendarParams {
   event_type_id: number;
 }
 
+const handle403Error = (error: AxiosError<ErrorResponse>) => {
+  if (error.response?.status === 403) {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+    window.location.href = '/auth/login'; // Redirect to login page
+  }
+};
+
 export const createAgent = createAsyncThunk(
   'agent/createAgent',
-async (agentData: any, { rejectWithValue }) => {
+  async (agentData: any, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
+      delete agentData.id;
       agentData.retell_key = user.retell_key;
       const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/agents', agentData, {
         headers: {
@@ -62,6 +71,7 @@ async (agentData: any, { rejectWithValue }) => {
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
+      handle403Error(axiosError);
       return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
     }
   }
@@ -80,6 +90,7 @@ export const fetchAgents = createAsyncThunk(
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
+      handle403Error(axiosError);
       return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
     }
   }
@@ -98,6 +109,7 @@ export const deleteAgent = createAsyncThunk(
       return id;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
+      handle403Error(axiosError);
       return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
     }
   }
@@ -117,6 +129,7 @@ export const updateAgent = createAsyncThunk(
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
+      handle403Error(axiosError);
       return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
     }
   }
@@ -135,6 +148,7 @@ export const fetchAgentById = createAsyncThunk(
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
+      handle403Error(axiosError);
       return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
     }
   }
@@ -159,6 +173,11 @@ export const integrateCalendar = createAsyncThunk(
       });
 
       if (!response.ok) {
+        if (response.status === 403) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user');
+          window.location.href = '/login'; // Redirect to login page
+        }
         throw new Error('Failed to integrate calendar');
       }
 

@@ -5,40 +5,91 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useRouter, useParams } from "next/navigation"
 import { useSelector, useDispatch } from "react-redux"
-import { updateAgent, updateSelectedAgent, fetchAgentById } from "@/store/agentSlice"
+import { updateAgent, updateSelectedAgent, fetchAgentById, createAgent } from "@/store/agentSlice"
 import { AppDispatch, RootState } from "@/store/store"
 import { fetchVoices } from "@/store/voiceSlice"
 import { useEffect, useState } from "react"
 import { RetellWebClient } from "retell-client-js-sdk"
+import Modal from "@/components/ui/modal"
+import { Input } from "@/components/ui/input"
 
 const retellWebClient = new RetellWebClient();
+
+interface Agent {
+    id: number;
+    user_id: number;
+    name: string;
+    agent_type: string;
+    main_goal: string;
+    language: string;
+    voice: string;
+    personality: string;
+    website: string;
+    prompt: string;
+    initial_message: string;
+    inbound_enabled: boolean;
+    google_calendar_id: string;
+    total_call_duration: number;
+    total_calls: number;
+    accent: string;
+    cal_key: string;
+    twilio_sid: string;
+    twilio_auth: string;
+    retell_agent_id: string;
+    retell_llm_id: string;
+    created_at: string;
+    agent_kb_ids: string[];
+    cal_event_id: number;
+  }
 
 export default function CreateAgentPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const agents = useSelector((state: RootState) => state.agent.agents);
   const { id: agentId } = useParams(); // Use useParams to get the agentId
-  const agent = agents.find((agent) => agent.id === Number(agentId));
+  const agent = (agentId !== "0") ? agents.find((agent) => agent.id === Number(agentId)) : { id: 0, name: "", agent_type: "", main_goal: "", language: "", voice: "", personality: "", website: "", prompt: "", initial_message: "", working_hours: "", cal_key: "", cal_event_id: 0, accent: "" };
   const voices = useSelector((state: RootState) => state.voice.voices);
   const [isCalling, setIsCalling] = useState(false);
   const [callId, setCallId] = useState<string | null>(null);
   const selectedAgent = useSelector((state: RootState) => state.agent.selectedAgent);
+  const createdAgent = useSelector((state: RootState) => state.agent.agents);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newAgentName, setNewAgentName] = useState("");
 
   useEffect(() => {
     dispatch(fetchVoices());
   }, [dispatch]);
 
   useEffect(() => {
-    if (agentId) {
+    if (agentId !== "0") {
       dispatch(fetchAgentById(Number(agentId)));
     }
   }, [dispatch, agentId]);
 
-  const handleEdit = (field: string, value: string) => {
+  useEffect(() => {
+    if (agentId === "0") {
+      setIsModalOpen(true);
+    }
+  }, [agentId]);
+
+  const handleNameSubmit = async () => {
+    if (newAgentName.trim()) {
+      await handleEdit('name', newAgentName);
+      setIsModalOpen(false);
+    }
+  };
+
+  const handleEdit = async (field: string, value: string) => {
     if (agent) {
       const updatedAgent = { ...agent, [field]: value };
-      dispatch(updateSelectedAgent(updatedAgent));
-      dispatch(updateAgent(updatedAgent));
+      if (agentId === "0") {
+        updatedAgent.name = newAgentName;
+        const createdAgent = await dispatch(createAgent(updatedAgent)).unwrap();
+        router.push(`/agent/${createdAgent.id}`);
+      } else {
+        dispatch(updateSelectedAgent(updatedAgent));
+        dispatch(updateAgent(updatedAgent as Agent));
+      }
     }
   };
 
@@ -125,6 +176,23 @@ export default function CreateAgentPage() {
 
   return (
     <div className="min-h-screen bg-white p-6">
+      {/* Modal for entering new agent name */}
+      {isModalOpen && (
+        <Modal onClose={() => {
+            router.push(`/agents`);
+        }}>
+          <h2 className="text-xl font-bold mb-4">Enter Agent Name</h2>
+          
+          <Input
+            value={newAgentName}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAgentName(e.target.value)}
+            placeholder="Enter agent name"
+          />
+          
+          <Button className="mt-4" onClick={handleNameSubmit}>Submit</Button>
+        </Modal>
+      )}
+
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <div className="mb-4">
@@ -180,7 +248,7 @@ export default function CreateAgentPage() {
               <Button variant="outline" className="gap-2">
                 <Calendar className="w-4 h-4" /> Calendar
               </Button>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/call-logs`)}>
                 <PhoneCall className="w-4 h-4" /> Call Logs
               </Button>
               <Button className="gap-2 bg-black hover:bg-black/90">

@@ -3,9 +3,9 @@ import axios from 'axios';
 
 export const login = createAsyncThunk(
   'auth/login',
-  async ({ username, password }: { username: string; password: string }) => {
+  async ({ email, password }: { email: string; password: string }) => {
     const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/login', {
-      username,
+      email,
       password,
     });
     return response.data.token; // Assuming the response contains the token

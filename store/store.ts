@@ -4,12 +4,16 @@ import authReducer from './authSlice'; // Adjust the path if necessary
 import agentReducer from './agentSlice';
 import voiceReducer from './voiceSlice';
 import knowledgeBaseReducer from './knowledgeBaseSlice';
+import callLogReducer from './callLogSlice';
+import phoneNumberReducer from './phoneNumberSlice';
 const store = configureStore({
   reducer: {
     auth: authReducer,
     agent: agentReducer,
     voice: voiceReducer,
     knowledgeBase: knowledgeBaseReducer,
+    callLogs: callLogReducer,
+    phoneNumbers: phoneNumberReducer,
   },
 });
 

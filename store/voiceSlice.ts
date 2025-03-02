@@ -24,6 +24,14 @@ const initialState: VoiceState = {
   error: null,
 };
 
+const handle403Error = (error: AxiosError) => {
+  if (error.response?.status === 403) {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+    window.location.href = '/auth/login'; // Redirect to login page
+  }
+};
+
 export const fetchVoices = createAsyncThunk(
   'voice/fetchVoices',
   async (_, { rejectWithValue }) => {
@@ -37,6 +45,7 @@ export const fetchVoices = createAsyncThunk(
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
+      handle403Error(axiosError);
       return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
     }
   }

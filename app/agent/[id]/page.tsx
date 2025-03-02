@@ -52,7 +52,7 @@ export default function CreateAgentPage() {
   const [isCalling, setIsCalling] = useState(false);
   const [callId, setCallId] = useState<string | null>(null);
   const selectedAgent = useSelector((state: RootState) => state.agent.selectedAgent);
-  const createdAgent = useSelector((state: RootState) => state.agent.agents);
+  // const createdAgent = useSelector((state: RootState) => state.agent.agents);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAgentName, setNewAgentName] = useState("");
 

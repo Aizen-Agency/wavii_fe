@@ -23,7 +23,7 @@ export default function PhoneNumbersPage() {
   const phoneNumbers = useSelector((state: RootState) => state.phoneNumbers.data);
   const phoneNumbersStatus = useSelector((state: RootState) => state.phoneNumbers.status);
   const phoneNumbersError = useSelector((state: RootState) => state.phoneNumbers.error);
-  const { agents, status, error } = useSelector((state: RootState) => state.agent)
+  const { agents } = useSelector((state: RootState) => state.agent)
   console.log(phoneNumbers);
   useEffect(() => {
     if (phoneNumbersStatus === 'idle') {

@@ -8,10 +8,13 @@ import { Label } from "@/components/ui/label"
 import { useDispatch, useSelector } from "react-redux"
 import { fetchAvailableNumbers, registerToTrunk } from "@/store/phoneNumberSlice"
 import { AppDispatch, RootState } from "@/store/store"
+import LoadingOverlay from "@/components/loadingOverlay"
+import { toast } from "react-toastify"
 
 interface AddTwilioNumberModalProps {
   open: boolean
   onClose: () => void
+  onSuccess?: () => void
 }
 
 const countryOptions = [
@@ -32,23 +35,33 @@ const countryOptions = [
   { code: 'gb', label: 'United Kingdom' }
 ]
 
-export function AddTwilioNumberModal({ open, onClose }: AddTwilioNumberModalProps) {
+export function AddTwilioNumberModal({ open, onClose, onSuccess }: AddTwilioNumberModalProps) {
   const dispatch = useDispatch<AppDispatch>()
-  const availableNumbers = useSelector((state: RootState) => state.phoneNumbers.availableNumbers)
+  const { availableNumbers, status } = useSelector((state: RootState) => state.phoneNumbers)
   const [selectedNumber, setSelectedNumber] = useState("")
   const [accountSid, setAccountSid] = useState("")
   const [authToken, setAuthToken] = useState("")
   const [countryCode, setCountryCode] = useState("")
 
-  const handleFetchNumbers = () => {
-    // Dispatch action to fetch available numbers with country code
-    dispatch(fetchAvailableNumbers({ accountSid: accountSid, authToken: authToken, countryCode: countryCode }))
+  const handleFetchNumbers = async () => {
+    try {
+      await dispatch(fetchAvailableNumbers({ accountSid, authToken, countryCode })).unwrap()
+      toast.success("Successfully fetched available numbers")
+    } catch (error) {
+      toast.error("Failed to fetch numbers: " + (error as Error).message)
+    }
   }
 
-  const handleActivateNumber = () => {
-    // Dispatch action to activate the selected number
+  const handleActivateNumber = async () => {
     if (selectedNumber) {
-      dispatch(registerToTrunk({ phonesid: selectedNumber, accountSid: accountSid, authToken: authToken }))
+      try {
+        await dispatch(registerToTrunk({ phonesid: selectedNumber, accountSid, authToken })).unwrap()
+        toast.success("Successfully activated number")
+        onSuccess?.()
+        onClose()
+      } catch (error) {
+        toast.error("Failed to activate number")
+      }
     }
   }
 
@@ -57,6 +70,7 @@ export function AddTwilioNumberModal({ open, onClose }: AddTwilioNumberModalProp
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
+        {status === "loading" && <LoadingOverlay />}
         <DialogHeader>
           <DialogTitle>Add Twilio Number</DialogTitle>
         </DialogHeader>
@@ -102,7 +116,7 @@ export function AddTwilioNumberModal({ open, onClose }: AddTwilioNumberModalProp
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button className="bg-purple-600 hover:bg-purple-700">Add Twilio Number</Button>
+          {/* <Button className="bg-purple-600 hover:bg-purple-700">Add Twilio Number</Button> */}
         </div>
       </DialogContent>
     </Dialog>

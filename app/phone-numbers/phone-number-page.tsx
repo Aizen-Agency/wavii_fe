@@ -9,8 +9,9 @@ import { AddPhoneNumberModal } from "@/components/phone-numbers/add-phone-number
 import { AddTwilioNumberModal } from "@/components/phone-numbers/add-twilio-number-modal"
 import { useDispatch, useSelector } from "react-redux"
 import { fetchPhoneNumbers } from "@/store/phoneNumberSlice"
-import { fetchAgents } from "@/store/agentSlice"
+import { fetchAgents, fetchAgentById } from "@/store/agentSlice"
 import { AppDispatch, RootState } from "@/store/store"
+import LoadingOverlay from "@/components/loadingOverlay"
 
 
 
@@ -32,14 +33,24 @@ export default function PhoneNumbersPage() {
     dispatch(fetchAgents())
   }, [phoneNumbersStatus, dispatch, phoneNumbers, phoneNumbersError]);
   
-  const getAgentName = (agentId: string) => {
-    console.log(agents);
-    const agent = agents.find(agent => agent.retell_agent_id === agentId);
-    return agent ? agent.name : "";
-  };
+  // const getAgentName = async (agentId: string) => {
+  //   if (!agentId) return "";
+  //   try {
+  //     const agent = await dispatch(fetchAgentById(parseInt(agentId))).unwrap();
+  //     return agent ? agent.name : "";
+  //   } catch (error) {
+  //     console.error("Error fetching agent:", error);
+  //     return "";
+  //   }
+  // };
+
+  const handleTwilioNumberSuccess = () => {
+    dispatch(fetchPhoneNumbers())
+  }
 
   return (
     <div className="min-h-screen bg-white p-6">
+      {phoneNumbersStatus === "loading" && <LoadingOverlay />}
       <div className="max-w-7xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold">Phone Numbers</h1>
 
@@ -106,27 +117,31 @@ export default function PhoneNumbersPage() {
             <div className="text-sm font-medium text-purple-600">Assigned Agent</div>
           </div>
 
-          {phoneNumbersStatus === 'loading' && (
-            <div className="p-8 text-center text-gray-500">Loading...</div>
-          )}
-
-          {phoneNumbersStatus === 'failed' && (
-            <div className="p-8 text-center text-red-500">{phoneNumbersError}</div>
-          )}
-
-          {phoneNumbersStatus === 'succeeded' && phoneNumbers && phoneNumbers.length === 0 && (
-            <div className="p-8 text-center text-gray-500">No phone numbers found</div>
-          )}
-
           {phoneNumbersStatus === 'succeeded' && phoneNumbers && phoneNumbers.length > 0 && (
             <div>
               {phoneNumbers.map((phoneNumber) => (
                 <div key={phoneNumber.phone_number} className="grid grid-cols-5 gap-4 p-4 border-b">
                   <div>{phoneNumber.phone_number}</div>
                   <div>ACTIVE</div>
-                  <div>{getAgentName(phoneNumber.inbound_agent_id  || "")}</div>
+                  <div>
+                    {phoneNumber.agent_id ? (
+                      <AgentName agentId={phoneNumber.agent_id} />
+                    ) : (
+                      ""
+                    )}
+                  </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {phoneNumbersStatus === 'succeeded' && phoneNumbers && phoneNumbers.length === 0 && (
+            <div className="p-8 text-center text-gray-500">No phone numbers found</div>
+          )}
+
+          {phoneNumbersStatus === 'failed' && (
+            <div className="p-8 text-center text-red-500">
+              Error loading phone numbers: {phoneNumbersError}
             </div>
           )}
         </div>
@@ -134,8 +149,33 @@ export default function PhoneNumbersPage() {
 
       <AddPhoneNumberModal open={isAddPhoneNumberOpen} onClose={() => setIsAddPhoneNumberOpen(false)} />
 
-      <AddTwilioNumberModal open={isAddTwilioNumberOpen} onClose={() => setIsAddTwilioNumberOpen(false)} />
+      <AddTwilioNumberModal 
+        open={isAddTwilioNumberOpen} 
+        onClose={() => setIsAddTwilioNumberOpen(false)}
+        onSuccess={handleTwilioNumberSuccess}
+      />
     </div>
   )
+}
+
+function AgentName({ agentId }: { agentId: string }) {
+  const [agentName, setAgentName] = useState<string>("");
+  const dispatch = useDispatch<AppDispatch>();
+
+  useEffect(() => {
+    const loadAgentName = async () => {
+      try {
+        const agent = await dispatch(fetchAgentById(parseInt(agentId))).unwrap();
+        setAgentName(agent?.name || "");
+      } catch (error) {
+        console.error("Error fetching agent:", error);
+        setAgentName("Error loading agent");
+      }
+    };
+
+    loadAgentName();
+  }, [agentId, dispatch]);
+
+  return <span>{agentName || "Loading..."}</span>;
 }
 

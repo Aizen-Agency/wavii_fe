@@ -42,23 +42,30 @@ interface Agent {
     created_at: string;
     agent_kb_ids: string[];
     cal_event_id: number;
+    outbound_phone: number;
   }
 
 export default function CreateAgentPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const agents = useSelector((state: RootState) => state.agent.agents);
-  const { id: agentId } = useParams(); // Use useParams to get the agentId
-  const agent = (agentId !== "0") ? agents.find((agent) => agent.id === Number(agentId)) : { id: 0, name: "", agent_type: "", main_goal: "", language: "", voice: "", personality: "", website: "", prompt: "", initial_message: "", working_hours: "", cal_key: "", cal_event_id: 0, accent: "" };
+  const { id: agentId } = useParams();
+  const [agent, setAgent] = useState<Agent | null>(null);
   const voices = useSelector((state: RootState) => state.voice.voices);
   const [isCalling, setIsCalling] = useState(false);
   const [callId, setCallId] = useState<string | null>(null);
   const selectedAgent = useSelector((state: RootState) => state.agent.selectedAgent);
-  // const createdAgent = useSelector((state: RootState) => state.agent.agents);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAgentName, setNewAgentName] = useState("");
   const [loading, setLoading] = useState(false);
   const [rerender, setRerender] = useState(false);
+
+  // Add state variables for each field
+  const [agentName, setAgentName] = useState(agent?.name || "");
+  const [agentType, setAgentType] = useState(agent?.agent_type || "");
+  const [mainGoal, setMainGoal] = useState(agent?.main_goal || "");
+  const [language, setLanguage] = useState(agent?.language || "");
+  const [voice, setVoice] = useState(agent?.voice || "");
+  const [accent, setAccent] = useState(agent?.accent || "");
 
   useEffect(() => {
     dispatch(fetchVoices());
@@ -68,7 +75,51 @@ export default function CreateAgentPage() {
     if (agentId !== "0") {
       dispatch(fetchAgentById(Number(agentId)));
     }
-  }, [dispatch, agentId]);
+  }, [agentId, dispatch]);
+
+  useEffect(() => {
+    if (selectedAgent) {
+      setAgent(selectedAgent);
+      setAgentName(selectedAgent.name);
+      setAgentType(selectedAgent.agent_type);
+      setMainGoal(selectedAgent.main_goal);
+      setLanguage(selectedAgent.language);
+      setVoice(selectedAgent.voice);
+      setAccent(selectedAgent.accent);
+    }
+  }, [selectedAgent]);
+
+  useEffect(() => {
+    if (agentId === "0") {
+      setAgent({ 
+        id: 0, 
+        name: "", 
+        agent_type: "", 
+        main_goal: "", 
+        language: "", 
+        voice: "", 
+        personality: "", 
+        website: "", 
+        prompt: "", 
+        initial_message: "", 
+        inbound_enabled: false,
+        google_calendar_id: "",
+        total_call_duration: 0,
+        total_calls: 0,
+        accent: "",
+        cal_key: "",
+        twilio_sid: "",
+        twilio_auth: "",
+        retell_agent_id: "",
+        retell_llm_id: "",
+        created_at: "",
+        agent_kb_ids: [],
+        cal_event_id: 0,
+        user_id: 0,
+        outbound_phone: 0
+      });
+    }
+  }, [agentId]);
 
   useEffect(() => {
     if (agentId === "0") {
@@ -88,6 +139,14 @@ export default function CreateAgentPage() {
       setLoading(true);
       try {
         const updatedAgent = { ...agent, [field]: value };
+        // Update state variables based on field
+        if (field === 'name') setAgentName(value);
+        if (field === 'agent_type') setAgentType(value);
+        if (field === 'main_goal') setMainGoal(value);
+        if (field === 'language') setLanguage(value);
+        if (field === 'voice') setVoice(value);
+        if (field === 'accent') setAccent(value);
+
         if (agentId === "0") {
           updatedAgent.name = newAgentName;
           const createdAgent = await dispatch(createAgent(updatedAgent)).unwrap();
@@ -96,8 +155,13 @@ export default function CreateAgentPage() {
         } else {
           console.log(updatedAgent);
           dispatch(updateSelectedAgent(updatedAgent));
-          dispatch(updateAgent(updatedAgent as Agent));
-          toast.success("Agent updated successfully!");
+          const updatedAgentresp = await dispatch(updateAgent(updatedAgent as Agent)).unwrap();
+          console.log(updatedAgentresp);
+          if (!updatedAgentresp.hasOwnProperty('error')) {
+            toast.success("Agent updated successfully!");
+          } else {
+            toast.error("Operation failed. Please try again.");
+          }
         }
         setRerender(!rerender);
       } catch (error) {
@@ -115,12 +179,10 @@ export default function CreateAgentPage() {
     "pl-PL", "tr-TR", "vi-VN", "multi"
   ];
 
-  if (!agent) {
-    return <p>Loading...</p>;
+  if (!agent && agentId !== "0") {
+    return <LoadingOverlay />;
   }
 
-
-  
   interface RegisterCallResponse {
     access_token: string;
     call_id?: string;
@@ -129,7 +191,7 @@ export default function CreateAgentPage() {
     // Register call using selected agent
     async function registerCall(agentId: string): Promise<RegisterCallResponse> {
         try {
-          const response = await fetch("http://localhost:8080/create-web-call", {
+          const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/create-web-call", {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
@@ -190,9 +252,9 @@ export default function CreateAgentPage() {
   }
   
 
-  useEffect(() => {
-    // This effect will run whenever rerender state changes
-  }, [rerender]);
+  // useEffect(() => {
+  //   // This effect will run whenever rerender state changes
+  // }, [rerender]);
 
   return (
     <div className="min-h-screen bg-white p-6">
@@ -202,6 +264,27 @@ export default function CreateAgentPage() {
         <Modal onClose={() => {
             router.push(`/agents`);
         }}>
+          <div className="flex justify-end">
+            <button
+              className="text-gray-500 hover:text-gray-700 p-2"
+              onClick={() => router.push(`/agents`)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
           <h2 className="text-xl font-bold mb-4">Enter Agent Name</h2>
           
           <Input
@@ -210,7 +293,8 @@ export default function CreateAgentPage() {
             placeholder="Enter agent name"
           />
           
-          <Button className="mt-4" onClick={handleNameSubmit}>Submit</Button>
+          <Button className="mt-4 mr-4" onClick={handleNameSubmit}> Submit </Button>
+            
         </Modal>
       )}
 
@@ -224,8 +308,8 @@ export default function CreateAgentPage() {
 
         {/* Header */}
         <div className="flex items-center justify-center gap-2 mb-12">
-          <h1 className="text-4xl font-bold text-purple-600">{agent.name}</h1>
-          <button className="text-gray-400 hover:text-gray-600" onClick={() => handleEdit('name', prompt('Edit Name', agent.name) || agent.name)}>
+          <h1 className="text-4xl font-bold text-purple-600">{agentName}</h1>
+          <button className="text-gray-400 hover:text-gray-600" onClick={() => handleEdit('name', prompt('Edit Name', agentName) || agentName)}>
             <Pencil className="w-5 h-5" />
           </button>
         </div>
@@ -272,7 +356,7 @@ export default function CreateAgentPage() {
               <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/call-logs`)}>
                 <PhoneCall className="w-4 h-4" /> Call Logs
               </Button>
-              <Button className="gap-2 bg-black hover:bg-black/90">
+              <Button className="gap-2 bg-black hover:bg-black/90" onClick={() => router.push(`/agent/${agentId}/phone`)}>
                 <Phone className="w-4 h-4" /> Phone
               </Button>
             </div>
@@ -287,7 +371,7 @@ export default function CreateAgentPage() {
                 <div className="text-gray-500">Type</div>
                 <div className="flex items-center justify-between">
                   <select
-                    value={agent.agent_type}
+                    value={agentType}
                     onChange={(e) => handleEdit('agent_type', e.target.value)}
                     className="font-medium text-gray-700"
                   >
@@ -300,8 +384,8 @@ export default function CreateAgentPage() {
               <div className="space-y-1">
                 <div className="text-gray-500">Main Goal</div>
                 <div className="flex items-center justify-between">
-                  <div className="font-medium">{agent.main_goal}</div>
-                  <Button variant="ghost" size="sm" className="text-gray-500" onClick={() => handleEdit('main_goal', prompt('Edit Main Goal', agent.main_goal) || agent.main_goal)}>
+                  <div className="font-medium">{mainGoal}</div>
+                  <Button variant="ghost" size="sm" className="text-gray-500" onClick={() => handleEdit('main_goal', prompt('Edit Main Goal', mainGoal) || mainGoal)}>
                     Edit
                   </Button>
                 </div>
@@ -311,7 +395,7 @@ export default function CreateAgentPage() {
                 <div className="text-gray-500">Language</div>
                 <div className="flex items-center justify-between">
                   <select
-                    value={agent.language}
+                    value={language}
                     onChange={(e) => handleEdit('language', e.target.value)}
                     className="font-medium text-gray-700"
                   >
@@ -328,7 +412,7 @@ export default function CreateAgentPage() {
                 <div className="text-gray-500">Voice</div>
                 <div className="flex items-center justify-between">
                   <select
-                    value={agent.voice}
+                    value={voice}
                     onChange={(e) => handleEdit('voice', e.target.value)}
                     className="font-medium text-gray-700"
                   >
@@ -344,8 +428,8 @@ export default function CreateAgentPage() {
               <div className="space-y-1">
                 <div className="text-gray-500">Accent</div>
                 <div className="flex items-center justify-between">
-                  <div className="font-medium">{agent.accent}</div>
-                  <Button variant="ghost" size="sm" className="text-gray-500" onClick={() => handleEdit('accent', prompt('Edit Accent', agent.accent) || agent.accent)}>
+                  <div className="font-medium">{accent}</div>
+                  <Button variant="ghost" size="sm" className="text-gray-500" onClick={() => handleEdit('accent', prompt('Edit Accent', accent) || accent)}>
                     Edit
                   </Button>
                 </div>

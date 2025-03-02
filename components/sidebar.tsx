@@ -25,7 +25,8 @@ export function Sidebar() {
     setIsLoggingOut(true);
     setTimeout(() => {
       setIsLoggingOut(false);
-      localStorage.removeItem('user'); // Clear user data from localStorage
+      localStorage.removeItem('access_token'); // Clear user data from localStorage
+      localStorage.removeItem('user');
       router.push("/auth/login");
     }, 1000);
   };

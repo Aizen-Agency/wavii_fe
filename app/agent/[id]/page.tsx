@@ -261,9 +261,9 @@ export default function CreateAgentPage() {
       {loading && <LoadingOverlay />}
       {/* Modal for entering new agent name */}
       {isModalOpen && (
-        <Modal onClose={() => {
-            router.push(`/agents`);
-        }}>
+          <Modal onClose={() => {
+              router.push(`/agents`);
+          }}>
           <div className="flex justify-end">
             <button
               className="text-gray-500 hover:text-gray-700 p-2"

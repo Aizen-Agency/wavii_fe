@@ -11,7 +11,7 @@ import { toast } from 'react-toastify'; // Import toast for popups
 import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
-  const [username, setUsername] = useState("");
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
@@ -25,7 +25,7 @@ export default function RegisterPage() {
     setLoading(true); // Set loading to true when form is submitted
     try {
       await dispatch(register({ 
-        username: username, // Corrected username
+        username: "", // Corrected username
         password: password,
         email: email,
         company_name: companyName

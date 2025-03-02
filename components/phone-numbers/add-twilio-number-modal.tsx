@@ -60,6 +60,7 @@ export function AddTwilioNumberModal({ open, onClose, onSuccess }: AddTwilioNumb
         onSuccess?.()
         onClose()
       } catch (error) {
+        console.log(error)
         toast.error("Failed to activate number")
       }
     }

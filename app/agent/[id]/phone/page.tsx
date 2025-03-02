@@ -1,10 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Phone, Plus } from "lucide-react"
+import { Phone, Plus } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import { fetchPhoneNumbers } from "@/store/phoneNumberSlice" // Adjust the import path as necessary
 import { AppDispatch, RootState } from "@/store/store"
 import { useDispatch, useSelector } from "react-redux"

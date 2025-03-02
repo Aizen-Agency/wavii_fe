@@ -62,7 +62,7 @@ export const createAgent = createAsyncThunk(
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       delete agentData.id;
       agentData.retell_key = user.retell_key;
-      const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/agents', agentData, {
+      const response = await axios.post('http://localhost:8080/agents', agentData, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -82,7 +82,7 @@ export const fetchAgents = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/agents', {
+      const response = await axios.get('http://localhost:8080/agents', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -101,7 +101,7 @@ export const deleteAgent = createAsyncThunk(
   async (id: number, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      await axios.delete(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${id}`, {
+      await axios.delete(`http://localhost:8080/agents/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -120,7 +120,7 @@ export const updateAgent = createAsyncThunk(
   async (agentData: Agent, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.patch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentData.id}`, agentData, {
+      const response = await axios.patch(`http://localhost:8080/agents/${agentData.id}`, agentData, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -140,7 +140,7 @@ export const fetchAgentById = createAsyncThunk(
   async (id: number, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${id}`, {
+      const response = await axios.get(`http://localhost:8080/agents/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -160,7 +160,7 @@ export const integrateCalendar = createAsyncThunk(
   async ({ agent_id, cal_api_key, event_type_id }: IntegrateCalendarParams, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agent_id}/integrate-calendar`, {
+      const response = await fetch(`http://localhost:8080/agents/${agent_id}/integrate-calendar`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

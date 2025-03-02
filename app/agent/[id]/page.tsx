@@ -12,6 +12,8 @@ import { useEffect, useState } from "react"
 import { RetellWebClient } from "retell-client-js-sdk"
 import Modal from "@/components/ui/modal"
 import { Input } from "@/components/ui/input"
+import LoadingOverlay from "@/components/loadingOverlay"
+import { toast } from 'react-toastify'
 
 const retellWebClient = new RetellWebClient();
 
@@ -55,6 +57,8 @@ export default function CreateAgentPage() {
   // const createdAgent = useSelector((state: RootState) => state.agent.agents);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAgentName, setNewAgentName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [rerender, setRerender] = useState(false);
 
   useEffect(() => {
     dispatch(fetchVoices());
@@ -81,14 +85,26 @@ export default function CreateAgentPage() {
 
   const handleEdit = async (field: string, value: string) => {
     if (agent) {
-      const updatedAgent = { ...agent, [field]: value };
-      if (agentId === "0") {
-        updatedAgent.name = newAgentName;
-        const createdAgent = await dispatch(createAgent(updatedAgent)).unwrap();
-        router.push(`/agent/${createdAgent.id}`);
-      } else {
-        dispatch(updateSelectedAgent(updatedAgent));
-        dispatch(updateAgent(updatedAgent as Agent));
+      setLoading(true);
+      try {
+        const updatedAgent = { ...agent, [field]: value };
+        if (agentId === "0") {
+          updatedAgent.name = newAgentName;
+          const createdAgent = await dispatch(createAgent(updatedAgent)).unwrap();
+          router.push(`/agent/${createdAgent.id}`);
+          toast.success("Agent created successfully!");
+        } else {
+          console.log(updatedAgent);
+          dispatch(updateSelectedAgent(updatedAgent));
+          dispatch(updateAgent(updatedAgent as Agent));
+          toast.success("Agent updated successfully!");
+        }
+        setRerender(!rerender);
+      } catch (error) {
+        console.error(error);
+        toast.error("Operation failed. Please try again.");
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -113,7 +129,7 @@ export default function CreateAgentPage() {
     // Register call using selected agent
     async function registerCall(agentId: string): Promise<RegisterCallResponse> {
         try {
-          const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/create-web-call", {
+          const response = await fetch("http://localhost:8080/create-web-call", {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
@@ -174,8 +190,13 @@ export default function CreateAgentPage() {
   }
   
 
+  useEffect(() => {
+    // This effect will run whenever rerender state changes
+  }, [rerender]);
+
   return (
     <div className="min-h-screen bg-white p-6">
+      {loading && <LoadingOverlay />}
       {/* Modal for entering new agent name */}
       {isModalOpen && (
         <Modal onClose={() => {

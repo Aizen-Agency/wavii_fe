@@ -101,7 +101,7 @@ export const fetchCallLogs = createAsyncThunk(
   'callLogs/fetchCallLogs',
   async ({ agentId, paginationKey }: { agentId: number; paginationKey?: string }, { getState, rejectWithValue }) => {
     const token = localStorage.getItem('access_token'); // Assuming you have an auth slice to manage JWT tokens
-    const url = new URL(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/call-logs`);
+    const url = new URL(`http://localhost:8080/agents/${agentId}/call-logs`);
     url.searchParams.append('limit', '50');
     if (paginationKey) {
       url.searchParams.append('pagination_key', paginationKey);

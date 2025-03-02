@@ -7,10 +7,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { login, fetchUserData } from "@/store/authSlice"; // Adjust the path as necessary
 import { RootState, AppDispatch } from "@/store/store"; // Adjust the path as necessary
+import LoadingOverlay from "@/components/loadingOverlay"; // Import LoadingOverlay
+import { toast } from 'react-toastify'; // Import toast for popups
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false); // Add loading state
   const dispatch = useDispatch<AppDispatch>();
   const token = useSelector((state: RootState) => state.auth.token);
   const user = useSelector((state: RootState) => state.auth.user);
@@ -25,20 +28,28 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      
       localStorage.setItem('user', JSON.stringify(user));
-      
       router.push('/');
     }
   }, [user, router]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    dispatch(login({ email, password }));
+    setLoading(true); // Set loading to true when form is submitted
+    try {
+      await dispatch(login({ email, password })).unwrap();
+      toast.success("Login successful!"); // Show success popup
+    } catch (error) {
+      console.log(error);
+      toast.error("Login failed. Please try again."); // Show error popup
+    } finally {
+      setLoading(false); // Set loading to false after API call
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      {loading && <LoadingOverlay />} {/* Show loading overlay when loading */}
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow-md">
         <h2 className="text-2xl font-bold text-center text-purple-600">Login</h2>
         <form onSubmit={handleSubmit} className="space-y-4">

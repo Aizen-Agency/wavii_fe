@@ -5,8 +5,9 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { Provider } from 'react-redux'
 import store from '../store/store'
-
+import { ToastContainer } from 'react-toastify';
 const inter = Inter({ subsets: ["latin"] })
+import 'react-toastify/dist/ReactToastify.css';
 
 // export const metadata: Metadata = {
 //   title: "Wavii Dashboard",
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Provider store={store}>
           {children}
+          <ToastContainer />
         </Provider>
       </body>
     </html>

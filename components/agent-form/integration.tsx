@@ -73,7 +73,7 @@ export function Integration({ formData, updateFormData }: IntegrationProps) {
         <Label>Calendar API Key</Label>
         <Input
           placeholder="Enter your calendar API key"
-          value={agent?.cal_key} 
+          value={formData.cal_key} 
           onChange={(e) => updateFormData({ cal_key: e.target.value })}
         />
       </div>
@@ -82,7 +82,7 @@ export function Integration({ formData, updateFormData }: IntegrationProps) {
         <Label>Calendar Event ID</Label>
         <Input
           placeholder="Enter your calendar event ID"
-          value={agent?.cal_event_id}
+          value={formData.cal_event_id}
           onChange={(e) => updateFormData({ cal_event_id: e.target.value })}
         />
       </div>

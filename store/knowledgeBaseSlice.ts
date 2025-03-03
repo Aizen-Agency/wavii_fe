@@ -23,7 +23,7 @@ export const fetchKnowledgeBases = createAsyncThunk(
   async (agentId: number, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/knowledge-bases`, {
+      const response = await axios.get(`http://localhost:8080/agents/${agentId}/knowledge-bases`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -47,7 +47,7 @@ export const uploadFilesThunk = createAsyncThunk(
       });
 
       const response = await axios.post(
-        `https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/upload-files-create-kbs`,
+        `http://localhost:8080/agents/${agentId}/upload-files-create-kbs`,
         formData,
         {
           headers: {

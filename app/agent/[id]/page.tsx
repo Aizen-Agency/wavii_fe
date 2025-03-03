@@ -191,7 +191,7 @@ export default function CreateAgentPage() {
     // Register call using selected agent
     async function registerCall(agentId: string): Promise<RegisterCallResponse> {
         try {
-          const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/create-web-call", {
+          const response = await fetch("http://localhost:8080/create-web-call", {
             method: "POST",
             headers: {
               "Content-Type": "application/json"

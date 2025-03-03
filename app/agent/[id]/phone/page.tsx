@@ -11,15 +11,23 @@ import { useRouter } from "next/navigation"
 import axios from "axios"
 import { useParams } from "next/navigation"
 import { fetchAgentById } from "@/store/agentSlice"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function PhoneActivation() {
   const { id } = useParams()
   const [hasNumbers, setHasNumbers] = useState(true)
   const dispatch = useDispatch<AppDispatch>()
   const phoneNumbers = useSelector((state: RootState) => state.phoneNumbers.data)
-//   const phoneNumbersStatus = useSelector((state: RootState) => state.phoneNumbers.status) 
-  const agent = useSelector((state: RootState) => state.agent.selectedAgent) 
+  //   const phoneNumbersStatus = useSelector((state: RootState) => state.phoneNumbers.status) 
+  const agent = useSelector((state: RootState) => state.agent.selectedAgent)
   const router = useRouter()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [toNumber, setToNumber] = useState("")
+  const [selectedPhoneNumber, setSelectedPhoneNumber] = useState("")
 
   useEffect(() => {
     const loadData = async () => {
@@ -45,9 +53,9 @@ export default function PhoneActivation() {
     if (!phoneNumber) return;
 
     const isCurrentlyInbound = phoneStatuses[phone_number_sid]?.inbound;
-    
+
     try {
-      const response = await axios.patch('https://retell-demo-be-cfbda6d152df.herokuapp.com/update-phone-number', {
+      const response = await axios.patch('http://localhost:8080/update-phone-number', {
         phone_number: phoneNumber.phone_number,
         inbound_agent_id: isCurrentlyInbound ? null : agent?.retell_agent_id
       }, {
@@ -98,7 +106,7 @@ export default function PhoneActivation() {
       const payload = isCurrentlyOutbound ? {} : { phone_number: phoneNumber.phone_number };
 
       const response = await axios.put(
-        `https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${id}/outbound-phone`,
+        `http://localhost:8080/agents/${id}/outbound-phone`,
         payload,
         {
           headers: {
@@ -143,12 +151,12 @@ export default function PhoneActivation() {
 
   const checkIsInbound = async (phone_number: string) => {
     try {
-      const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${id}/check-phone-number/${phone_number}`, {
+      const response = await axios.get(`http://localhost:8080/agents/${id}/check-phone-number/${phone_number}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}` // Assuming JWT is stored in localStorage
         }
       });
-      
+
       return response.data.belongs;
     } catch (error) {
       console.error('Error checking phone number:', error);
@@ -159,7 +167,7 @@ export default function PhoneActivation() {
   const checkIsOutbound = async (phone_number: string) => {
     // Similar implementation as checkIsInbound
     const phoneNumber = phoneNumbers.find(p => p.phone_number === phone_number);
-    if(agent?.outbound_phone === phoneNumber?.id) {
+    if (agent?.outbound_phone === phoneNumber?.id) {
       return true;
     }
     return false; // For now, using the same check
@@ -172,13 +180,13 @@ export default function PhoneActivation() {
     // Load initial statuses for all phone numbers
     const loadPhoneStatuses = async () => {
       const statuses: Record<string, { inbound: boolean, outbound: boolean }> = {};
-      
+
       for (const phone of phoneNumbers) {
         const inbound = await checkIsInbound(phone.phone_number);
         const outbound = await checkIsOutbound(phone.phone_number);
         statuses[phone.phone_number_sid] = { inbound, outbound };
       }
-      
+
       setPhoneStatuses(statuses);
     };
 
@@ -187,20 +195,58 @@ export default function PhoneActivation() {
     }
   }, [phoneNumbers, id]);
 
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setToNumber("")
+    setSelectedPhoneNumber("")
+  }
+
+  const startCall = async (from_number: string, to_number: string) => {
+    // Close modal first
+    handleModalClose()
+    
+    try {
+      await axios.post('http://localhost:8080/create-phone-call', {
+        to_number: to_number,
+        agent_id: agent?.retell_agent_id,
+        from_number: from_number
+      }, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+      
+      toast.success('Call initiated successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        closeButton: false,
+        closeOnClick: true
+      });
+    } catch (error) {
+      console.error('Error starting call:', error);
+      toast.error('Failed to initiate call. Please try again.', {
+        position: "top-right",
+        autoClose: 3000,
+        closeButton: false,
+        closeOnClick: true
+      });
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto p-4">
         {/* Header */}
         <div className="mb-6 mt-6">
           <div className="flex items-center mb-1">
-          <div className="mb-4">
-          <Button variant="outline" onClick={() => router.push(`/agent/${id}`)}>
-            Back
-          </Button>
-        </div>
+            <div className="mb-4">
+              <Button variant="outline" onClick={() => router.push(`/agent/${id}`)}>
+                Back
+              </Button>
+            </div>
           </div>
           <h1 className="text-2xl font-bold">Phone Activation</h1>
-         
+          <h3 className="text-sm text-gray-500">{agent?.name}</h3>
         </div>
 
         {/* Phone Number Assignment Section */}
@@ -223,17 +269,31 @@ export default function PhoneActivation() {
               {phoneNumbers.map((phone) => (
                 <div key={phone.phone_number_sid} className="flex justify-between items-center py-2">
                   <div className="font-medium">{phone.phone_number}</div>
-                  <div className="flex space-x-6">
-                    <div className="flex justify-center w-16">
-                      <Switch 
-                        checked={phoneStatuses[phone.phone_number_sid]?.inbound || false} 
-                        onCheckedChange={() => toggleInbound(phone.phone_number_sid)} 
+                  <div className="flex justify-center items-center space-x-6">
+                    {phoneStatuses[phone.phone_number_sid]?.outbound && (
+                      <div className="flex justify-center items-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedPhoneNumber(phone.phone_number)
+                            setIsModalOpen(true)
+                          }}
+                        >
+                          Call
+                        </Button>
+                      </div>
+                    )}
+                    <div className="flex justify-center items-center w-16">
+                      <Switch
+                        checked={phoneStatuses[phone.phone_number_sid]?.inbound || false}
+                        onCheckedChange={() => toggleInbound(phone.phone_number_sid)}
                       />
                     </div>
-                    <div className="flex justify-center w-16">
-                      <Switch 
-                        checked={phoneStatuses[phone.phone_number_sid]?.outbound || false} 
-                        onCheckedChange={() => toggleOutbound(phone.phone_number_sid)} 
+                    <div className="flex justify-center items-center w-16">
+                      <Switch
+                        checked={phoneStatuses[phone.phone_number_sid]?.outbound || false}
+                        onCheckedChange={() => toggleOutbound(phone.phone_number_sid)}
                       />
                     </div>
                   </div>
@@ -253,6 +313,31 @@ export default function PhoneActivation() {
           )}
         </div>
 
+        <Dialog open={isModalOpen} onOpenChange={handleModalClose}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Start Outbound Call</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number to Call</Label>
+                <Input
+                  id="phone"
+                  placeholder="Enter phone number (e.g., +1234567890)"
+                  value={toNumber}
+                  onChange={(e) => setToNumber(e.target.value)}
+                />
+              </div>
+              <Button
+                className="w-full"
+                onClick={() => startCall(selectedPhoneNumber, toNumber)}
+              >
+                Start Call
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Demo Controls (for demonstration purposes) */}
         {/* <div className="bg-white rounded-lg shadow p-6">
           <h3 className="font-medium mb-4">Demo Controls</h3>
@@ -261,6 +346,20 @@ export default function PhoneActivation() {
           </Button>
         </div> */}
       </div>
+      
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable
+        pauseOnHover
+        theme="light"
+        closeButton={false}
+      />
     </div>
   )
 }

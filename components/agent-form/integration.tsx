@@ -22,7 +22,6 @@ interface IntegrationProps {
 
 export function Integration({ formData, updateFormData }: IntegrationProps) {
   const dispatch = useDispatch<AppDispatch>()
-  const agent = useSelector((state: RootState) => state.agent.selectedAgent)
 
   useEffect(() => {
     if (formData.id) {

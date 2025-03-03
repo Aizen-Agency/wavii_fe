@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation"
 import axios from "axios"
 import { useParams } from "next/navigation"
 import { fetchAgentById } from "@/store/agentSlice"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ToastContainer, toast } from 'react-toastify';

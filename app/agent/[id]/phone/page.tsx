@@ -55,7 +55,7 @@ export default function PhoneActivation() {
     const isCurrentlyInbound = phoneStatuses[phone_number_sid]?.inbound;
 
     try {
-      const response = await axios.patch('http://localhost:8080/update-phone-number', {
+      const response = await axios.patch('https://retell-demo-be-cfbda6d152df.herokuapp.com/update-phone-number', {
         phone_number: phoneNumber.phone_number,
         inbound_agent_id: isCurrentlyInbound ? null : agent?.retell_agent_id
       }, {
@@ -106,7 +106,7 @@ export default function PhoneActivation() {
       const payload = isCurrentlyOutbound ? {} : { phone_number: phoneNumber.phone_number };
 
       const response = await axios.put(
-        `http://localhost:8080/agents/${id}/outbound-phone`,
+        `https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${id}/outbound-phone`,
         payload,
         {
           headers: {
@@ -151,7 +151,7 @@ export default function PhoneActivation() {
 
   const checkIsInbound = async (phone_number: string) => {
     try {
-      const response = await axios.get(`http://localhost:8080/agents/${id}/check-phone-number/${phone_number}`, {
+      const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${id}/check-phone-number/${phone_number}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}` // Assuming JWT is stored in localStorage
         }
@@ -206,7 +206,7 @@ export default function PhoneActivation() {
     handleModalClose()
     
     try {
-      await axios.post('http://localhost:8080/create-phone-call', {
+      await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/create-phone-call', {
         to_number: to_number,
         agent_id: agent?.retell_agent_id,
         from_number: from_number

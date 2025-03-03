@@ -4,7 +4,7 @@ import axios from 'axios';
 export const login = createAsyncThunk(
   'auth/login',
   async ({ email, password }: { email: string; password: string }) => {
-    const response = await axios.post('http://localhost:8080/login', {
+    const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/login', {
       email,
       password,
     });
@@ -15,7 +15,7 @@ export const login = createAsyncThunk(
 export const fetchUserData = createAsyncThunk(
   'auth/fetchUserData',
   async (token: string) => {
-    const response = await axios.get('http://localhost:8080/user', {
+    const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/user', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -27,7 +27,7 @@ export const fetchUserData = createAsyncThunk(
 export const register = createAsyncThunk(
   'auth/register',
   async ({ username, password, email, company_name }: { username: string; password: string; email: string; company_name: string }) => {
-    const response = await axios.post('http://localhost:8080/register', {
+    const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/register', {
       username,
       password,
       email,
@@ -41,7 +41,7 @@ export const updateUser = createAsyncThunk(
   'auth/updateUser',
   async ({ userData }: {  userData: any }) => {
     const token = localStorage.getItem('access_token');
-    const response = await axios.patch('http://localhost:8080/user', userData, {
+    const response = await axios.patch('https://retell-demo-be-cfbda6d152df.herokuapp.com/user', userData, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',

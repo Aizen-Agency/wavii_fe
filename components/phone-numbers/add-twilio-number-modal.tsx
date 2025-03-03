@@ -304,7 +304,7 @@ export function AddTwilioNumberModal({ open, onClose, onSuccess }: AddTwilioNumb
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[700px]">
         {status === "loading" && <LoadingOverlay />}
         <DialogHeader>
           <DialogTitle>Add Twilio Number</DialogTitle>

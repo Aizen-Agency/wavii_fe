@@ -23,12 +23,10 @@ export function Sidebar( { activeTab }: { activeTab: string } ) {
 
   const handleLogout = () => {
     setIsLoggingOut(true);
-    setTimeout(() => {
-      setIsLoggingOut(false);
-      localStorage.removeItem('access_token'); // Clear user data from localStorage
-      localStorage.removeItem('user');
-      router.push("/auth/login");
-    }, 1000);
+    localStorage.removeItem('access_token'); // Clear user data from localStorage
+    localStorage.removeItem('user');
+    localStorage.clear();
+    router.push("/auth/login");
   };
 
   // const handleTabClick = (path: string) => {

@@ -1,10 +1,10 @@
-import { Users, Activity, UserPlus } from "lucide-react"
+import { Users, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useDispatch, useSelector } from "react-redux"
 import { createSubAccount, fetchSubAccounts, updateSubAccount, deleteSubAccount } from "@/store/authSlice"
 import { useState, useEffect } from "react"
-import { AppDispatch } from "@/store/store"
+import { AppDispatch, RootState } from "@/store/store"
 
 import {
   Dialog,
@@ -16,9 +16,17 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+interface SubAccount {
+  id: string;
+  email: string;
+  company_name: string;
+  available_credits: number;
+  created_at: string;
+}
+
 export default function SubAccountsDashboard() {
   const dispatch = useDispatch<AppDispatch>()
-  const subaccounts = useSelector((state: any) => state.auth.subaccounts)
+  const subaccounts = useSelector((state: RootState) => state.auth.subaccounts)
   const [open, setOpen] = useState(false)
   const [formData, setFormData] = useState({
     password: "",
@@ -26,7 +34,7 @@ export default function SubAccountsDashboard() {
     company_name: "",
     available_credits: 0,
   })
-  const [selectedAccount, setSelectedAccount] = useState<any>(null);
+  const [selectedAccount, setSelectedAccount] = useState<SubAccount | null>(null);
   const [manageOpen, setManageOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     email: "",
@@ -35,7 +43,7 @@ export default function SubAccountsDashboard() {
     available_credits: 0,
   });
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [accountToDelete, setAccountToDelete] = useState<any>(null);
+  const [accountToDelete, setAccountToDelete] = useState<SubAccount | null>(null);
 
   useEffect(() => {
     dispatch(fetchSubAccounts())
@@ -65,7 +73,7 @@ export default function SubAccountsDashboard() {
     }))
   }
 
-  const handleManage = (account: any) => {
+  const handleManage = (account: SubAccount) => {
     setSelectedAccount(account);
     setEditForm({
       email: account.email,
@@ -82,30 +90,39 @@ export default function SubAccountsDashboard() {
 
     // Only include fields that have been changed
     const changes = Object.entries(editForm).reduce((acc, [key, value]) => {
-      if (key === 'password' && value === '') return acc; // Don't send empty password
-      if (value !== selectedAccount[key]) {
-        acc[key] = value;
+      if (key === 'password' && value === '') return acc;
+      if (value !== selectedAccount[key as keyof SubAccount]) {
+        if (key === 'available_credits') {
+          acc.available_credits = Number(value);
+        } else {
+          acc[key as 'email' | 'company_name' | 'password'] = value as string;
+        }
       }
       return acc;
-    }, {} as any);
+    }, {} as {
+      email?: string;
+      company_name?: string;
+      available_credits?: number;
+      password?: string;
+    });
 
     if (Object.keys(changes).length > 0) {
       dispatch(updateSubAccount({
-        id: selectedAccount.id,
+        id: Number(selectedAccount.id),
         userData: changes
       }));
     }
     setManageOpen(false);
   };
 
-  const handleDelete = (account: any) => {
+  const handleDelete = (account: SubAccount) => {
     setAccountToDelete(account);
     setDeleteConfirmOpen(true);
   };
 
   const confirmDelete = () => {
     if (accountToDelete) {
-      dispatch(deleteSubAccount(accountToDelete.id));
+      dispatch(deleteSubAccount(Number(accountToDelete.id)));
     }
     setDeleteConfirmOpen(false);
     setAccountToDelete(null);
@@ -212,7 +229,7 @@ export default function SubAccountsDashboard() {
       </Card>
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {subaccounts.map((account: any) => (
+        {subaccounts.map((account: SubAccount) => (
           <Card key={account.id} className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-purple-100 p-3 rounded-lg">

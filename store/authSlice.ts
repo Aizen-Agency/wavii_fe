@@ -64,6 +64,89 @@ export const updateUser = createAsyncThunk(
   }
 );
 
+export const createSubAccount = createAsyncThunk(
+  'auth/createSubAccount',
+  async ({ username, password, email, company_name, available_credits }: {
+    username: string;
+    password: string;
+    email: string;
+    company_name: string;
+    available_credits: number;
+  }) => {
+    const token = localStorage.getItem('access_token');
+    const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/subaccounts', 
+      {
+        username,
+        password,
+        email,
+        company_name,
+        available_credits
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  }
+);
+
+export const fetchSubAccounts = createAsyncThunk(
+  'auth/fetchSubAccounts',
+  async () => {
+    const token = localStorage.getItem('access_token');
+    const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/subaccounts', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  }
+);
+
+export const updateSubAccount = createAsyncThunk(
+  'auth/updateSubAccount',
+  async ({ id, userData }: { 
+    id: number, 
+    userData: {
+      username?: string;
+      email?: string;
+      company_name?: string;
+      password?: string;
+      available_credits?: number;
+    }
+  }) => {
+    const token = localStorage.getItem('access_token');
+    const response = await axios.patch(
+      `https://retell-demo-be-cfbda6d152df.herokuapp.com/subaccounts/${id}`,
+      userData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  }
+);
+
+export const deleteSubAccount = createAsyncThunk(
+  'auth/deleteSubAccount',
+  async (id: number) => {
+    const token = localStorage.getItem('access_token');
+    await axios.delete(`https://retell-demo-be-cfbda6d152df.herokuapp.com/subaccounts/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return id; // Return the id to remove it from the state
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
@@ -71,6 +154,7 @@ const authSlice = createSlice({
     user: null,
     status: 'idle',
     error: null as string | null,
+    subaccounts: [] as any[],
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -108,6 +192,54 @@ const authSlice = createSlice({
         state.user = action.payload; // Update the user data in the store
       })
       .addCase(updateUser.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message || null;
+      })
+      .addCase(createSubAccount.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(createSubAccount.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.subaccounts = [...state.subaccounts, action.payload];
+      })
+      .addCase(createSubAccount.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message || null;
+      })
+      .addCase(fetchSubAccounts.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchSubAccounts.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.subaccounts = action.payload;
+      })
+      .addCase(fetchSubAccounts.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message || null;
+      })
+      .addCase(updateSubAccount.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(updateSubAccount.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.subaccounts = state.subaccounts.map(account =>
+          account.id === action.payload.id ? action.payload : account
+        );
+      })
+      .addCase(updateSubAccount.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message || null;
+      })
+      .addCase(deleteSubAccount.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(deleteSubAccount.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.subaccounts = state.subaccounts.filter(
+          account => account.id !== action.payload
+        );
+      })
+      .addCase(deleteSubAccount.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message || null;
       });

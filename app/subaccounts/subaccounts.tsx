@@ -2,7 +2,7 @@ import { Users, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useDispatch, useSelector } from "react-redux"
-import { createSubAccount, fetchSubAccounts, updateSubAccount, deleteSubAccount } from "@/store/authSlice"
+import { fetchSubAccounts, updateSubAccount, deleteSubAccount } from "@/store/authSlice"
 import { useState, useEffect } from "react"
 import { AppDispatch, RootState } from "@/store/store"
 import { useRouter } from "next/navigation"
@@ -11,8 +11,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  DialogTitle
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -28,13 +27,13 @@ interface SubAccount {
 export default function SubAccountsDashboard() {
   const dispatch = useDispatch<AppDispatch>()
   const subaccounts = useSelector((state: RootState) => state.auth.subaccounts)
-  const [open, setOpen] = useState(false)
-  const [formData, setFormData] = useState({
-    password: "",
-    email: "",
-    company_name: "",
-    available_credits: 0,
-  })
+  // const [open, setOpen] = useState(false)
+  // const [formData, setFormData] = useState({
+  //   password: "",
+  //   email: "",
+  //   company_name: "",
+  //   available_credits: 0,
+  // })
   const [selectedAccount, setSelectedAccount] = useState<SubAccount | null>(null);
   const [manageOpen, setManageOpen] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -67,13 +66,13 @@ export default function SubAccountsDashboard() {
   //   })
   // }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'available_credits' ? Number(value) : value
-    }))
-  }
+  // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // //   const { name, value } = e.target
+  // //     setFormData(prev => ({ 
+  // //       ...prev,
+  // //       [name]: name === 'available_credits' ? Number(value) : value
+  // //     }))
+  // }
 
   const handleManage = (account: SubAccount) => {
     setSelectedAccount(account);

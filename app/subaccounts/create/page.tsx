@@ -49,10 +49,10 @@ export default function CreateSubAccountPage() {
       let logoUrl
       if (logo) {
         // Create FormData for file upload
-        const formData = new FormData()
-        formData.append('file', logo)
+        const uploadData = new FormData()
+        uploadData.append('file', logo)
         
-        const uploadResult = await dispatch(uploadLogo(formData)).unwrap()
+        const uploadResult = await dispatch(uploadLogo(uploadData as unknown as File)).unwrap() 
         logoUrl = uploadResult.url
       }
 
@@ -263,17 +263,32 @@ export default function CreateSubAccountPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="company-name">Company Name</Label>
-                  <Input id="company-name" placeholder="Enter company name" />
+                  <Input 
+                    id="company-name" 
+                    value={formData.company_name}
+                    onChange={handleInputChange}
+                    placeholder="Enter company name" 
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="login-heading">Login Page Heading</Label>
-                  <Input id="login-heading" defaultValue="Welcome Back" />
+                  <Input 
+                    id="login-heading" 
+                    value={formData.login_heading}
+                    onChange={handleInputChange}
+                    defaultValue="Welcome Back" 
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="login-subheading">Login Page Subheading</Label>
-                  <Input id="login-subheading" defaultValue="Sign in to continue to your account" />
+                  <Input 
+                    id="login-subheading" 
+                    value={formData.login_subheading}
+                    onChange={handleInputChange}
+                    defaultValue="Sign in to continue to your account" 
+                  />
                 </div>
 
                 <div className="space-y-2">

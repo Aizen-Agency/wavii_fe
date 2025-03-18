@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button"
-import { Upload } from "lucide-react"
+import { Upload, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { fetchKnowledgeBases, uploadFilesThunk } from "@/store/knowledgeBaseSlice"
+import { fetchKnowledgeBases, uploadFilesThunk, deleteKnowledgeBaseThunk } from "@/store/knowledgeBaseSlice"
 import { fetchAgentById } from '@/store/agentSlice'
 import { RootState } from '@/store/store'
 import { AppDispatch } from '@/store/store'
@@ -59,6 +59,10 @@ export function KnowledgeBase({ formData }: KnowledgeBaseProps) {
     }
   };
 
+  const handleDeleteClick = (knowledgeBaseId: number) => {
+    dispatch(deleteKnowledgeBaseThunk(knowledgeBaseId));
+  };
+
   return (
     <div className="space-y-6">
       <div className="border-2 border-dashed rounded-lg p-8 text-center">
@@ -90,8 +94,14 @@ export function KnowledgeBase({ formData }: KnowledgeBaseProps) {
         {status === 'succeeded' && knowledgeBases.length > 0 && (
           <ul>
             {knowledgeBases.map((kb: KnowledgeBase) => (
-              <li key={kb.knowledge_base_id}>
-                {/* <h4 className="font-medium">{kb.knowledge_base_id}</h4> */}
+              <li key={kb.knowledge_base_id} className="flex items-center">
+                <button
+                  onClick={() => handleDeleteClick(kb.knowledge_base_id)}
+                  className="text-red-500 hover:text-red-700 mr-2"
+                  aria-label="Delete knowledge base"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
                 <ul>
                   {(kb.knowledge_base_sources || []).map((source: KnowledgeBase['knowledge_base_sources'][number]) => (
                     <li key={source.filename}>

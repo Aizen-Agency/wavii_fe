@@ -2,6 +2,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+
+interface KnowledgeBase {
+  knowledge_base_id: number;
+  knowledge_base_sources: {
+    filename: string;
+    file_url: string;
+  }[];
+}
 // Define the initial state of the knowledge base
 const initialState = {
   knowledgeBases: [],
@@ -68,6 +76,28 @@ export const uploadFilesThunk = createAsyncThunk(
   }
 );
 
+// Create an async thunk for deleting a knowledge base
+export const deleteKnowledgeBaseThunk = createAsyncThunk(
+  'knowledgeBase/deleteKnowledgeBase',
+  async (knowledgeBaseId: number, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      await axios.delete(`https://retell-demo-be-cfbda6d152df.herokuapp.com/delete-knowledge-base/${knowledgeBaseId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return knowledgeBaseId; // Return the ID of the deleted knowledge base
+    } catch (error) {
+      handle403Error(error);
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data || 'Unknown error');
+      }
+      return rejectWithValue('An unknown error occurred');
+    }
+  }
+);
+
 // Create the knowledge base slice
 const knowledgeBaseSlice = createSlice({
   name: 'knowledgeBase',
@@ -83,6 +113,19 @@ const knowledgeBaseSlice = createSlice({
         state.knowledgeBases = action.payload;
       })
       .addCase(fetchKnowledgeBases.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
+      })
+      .addCase(deleteKnowledgeBaseThunk.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(deleteKnowledgeBaseThunk.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.knowledgeBases = state.knowledgeBases.filter(
+          (kb: KnowledgeBase) => kb.knowledge_base_id !== action.payload
+        );
+      })
+      .addCase(deleteKnowledgeBaseThunk.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload as string;
       });

@@ -4,12 +4,13 @@ import Link from "next/link"
 import { Settings, Users, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react" 
-import { useRouter } from "next/navigation"
+// import { useRouter } from "next/navigation"
 
 export function Sidebar( { activeTab }: { activeTab: string } ) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
-  const router = useRouter();
+  const [isSubaccount, setIsSubaccount] = useState(false);
+  // const router = useRouter();
 
 
   useEffect(() => {
@@ -18,15 +19,26 @@ export function Sidebar( { activeTab }: { activeTab: string } ) {
     if (user) {
       const userDetails = JSON.parse(user);
       setEmail(userDetails.email); // Assuming userDetails has a username field
+      setIsSubaccount(!!userDetails.subaccountId); // Set based on whether user has subaccountId
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsLoggingOut(true);
-    localStorage.removeItem('access_token'); // Clear user data from localStorage
-    localStorage.removeItem('user');
-    localStorage.clear();
-    router.push("/auth/login");
+    try {
+      // Clear all storage items individually first
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
+      // Then clear everything else
+      localStorage.clear();
+      
+      // Force navigation to login page
+      window.location.href = '/auth/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   // const handleTabClick = (path: string) => {
@@ -53,17 +65,17 @@ export function Sidebar( { activeTab }: { activeTab: string } ) {
           All Agents
         </Link>
 
-        <Link
-          aria-disabled={true}
-          href="/subaccounts"
-          className={`flex items-center px-3 py-2 text-sm rounded-lg ${
-            activeTab === '/subaccounts' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
-          }`}
-          // onClick={() => handleTabClick('/subaccounts')}
-        >
-          <Users className="w-5 h-5 mr-3" />
-          Subaccounts
-        </Link>
+        {!isSubaccount && (
+          <Link
+            href="/subaccounts"
+            className={`flex items-center px-3 py-2 text-sm rounded-lg ${
+              activeTab === '/subaccounts' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Users className="w-5 h-5 mr-3" />
+            Subaccounts
+          </Link>
+        )}
 
         <Link
           href="/phone-numbers"

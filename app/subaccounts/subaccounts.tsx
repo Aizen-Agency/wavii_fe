@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { createSubAccount, fetchSubAccounts, updateSubAccount, deleteSubAccount } from "@/store/authSlice"
 import { useState, useEffect } from "react"
 import { AppDispatch, RootState } from "@/store/store"
+import { useRouter } from "next/navigation"
 
 import {
   Dialog,
@@ -44,26 +45,27 @@ export default function SubAccountsDashboard() {
   });
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<SubAccount | null>(null);
+  const router = useRouter()
 
   useEffect(() => {
     dispatch(fetchSubAccounts())
   }, [dispatch])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    dispatch(createSubAccount({
-      ...formData,
-      username: "  " // Always send two spaces as username
-    }))
-    setOpen(false)
-    // Reset form
-    setFormData({
-      password: "",
-      email: "",
-      company_name: "",
-      available_credits: 0,
-    })
-  }
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   dispatch(createSubAccount({
+  //     ...formData,
+  //     username: "  " // Always send two spaces as username
+  //   }))
+  //   setOpen(false)
+  //   // Reset form
+  //   setFormData({
+  //     password: "",
+  //     email: "",
+  //     company_name: "",
+  //     available_credits: 0,
+  //   })
+  // }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -132,72 +134,13 @@ export default function SubAccountsDashboard() {
     <div className="container mx-auto px-8 py-8 max-w-7xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-800">Sub Accounts</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-purple-500 hover:bg-purple-600">
-              <UserPlus className="mr-2 h-4 w-4" />
-              Create Sub Account
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Create Sub Account</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="company_name">Company Name</Label>
-                <Input
-                  id="company_name"
-                  name="company_name"
-                  value={formData.company_name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="available_credits">Available Credits</Label>
-                <Input
-                  id="available_credits"
-                  name="available_credits"
-                  type="number"
-                  value={formData.available_credits}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-4 mt-4">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" className="bg-purple-500 hover:bg-purple-600">
-                  Create
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          className="bg-purple-500 hover:bg-purple-600"
+          onClick={() => router.push('/subaccounts/create')}
+        >
+          <UserPlus className="mr-2 h-4 w-4" />
+          Create Sub Account
+        </Button>
       </div>
 
       <Card className="p-6">

@@ -64,23 +64,58 @@ export const updateUser = createAsyncThunk(
   }
 );
 
+export const uploadLogo = createAsyncThunk(
+  'auth/uploadLogo',
+  async (file: File) => {
+    const token = localStorage.getItem('access_token');
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/upload-logo', 
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  }
+);
+
 export const createSubAccount = createAsyncThunk(
   'auth/createSubAccount',
-  async ({ username, password, email, company_name, available_credits }: {
-    username: string;
-    password: string;
+  async ({
+    email,
+    password,
+    company_name,
+    available_credits,
+    color_scheme,
+    logo_url,
+    login_heading,
+    login_subheading
+  }: {
     email: string;
+    password: string;
     company_name: string;
     available_credits: number;
+    color_scheme: string;
+    logo_url?: string;
+    login_heading: string;
+    login_subheading: string;
   }) => {
     const token = localStorage.getItem('access_token');
     const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/subaccounts', 
       {
-        username,
-        password,
         email,
+        password,
         company_name,
-        available_credits
+        available_credits,
+        color_scheme,
+        logo_url,
+        login_heading,
+        login_subheading
       },
       {
         headers: {
@@ -192,6 +227,17 @@ const authSlice = createSlice({
         state.user = action.payload; // Update the user data in the store
       })
       .addCase(updateUser.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message || null;
+      })
+      .addCase(uploadLogo.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(uploadLogo.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        // Handle successful logo upload
+      })
+      .addCase(uploadLogo.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message || null;
       })

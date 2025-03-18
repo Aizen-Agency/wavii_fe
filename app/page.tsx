@@ -7,7 +7,12 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    router.push("/agents")
+    const accessToken = localStorage.getItem('access_token')
+    if (!accessToken) {
+      router.push('/auth/login')
+    } else {
+      router.push('/agents')
+    }
   }, [router])
 
   return (

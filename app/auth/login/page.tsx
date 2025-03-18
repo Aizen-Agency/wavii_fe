@@ -33,6 +33,15 @@ export default function LoginPage() {
     }
   }, [user, router]);
 
+  useEffect(() => {
+    // Check if there's no token on page load
+    const storedToken = localStorage.getItem('access_token');
+    if (!storedToken) {
+      // Clear any remaining data just to be safe
+      localStorage.clear();
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true); // Set loading to true when form is submitted

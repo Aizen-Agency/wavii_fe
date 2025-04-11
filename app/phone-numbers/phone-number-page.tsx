@@ -8,12 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AddPhoneNumberModal } from "@/components/phone-numbers/add-phone-number-modal"
 import { AddTwilioNumberModal } from "@/components/phone-numbers/add-twilio-number-modal"
 import { useDispatch, useSelector } from "react-redux"
-import { fetchPhoneNumbers } from "@/store/phoneNumberSlice"
+import { fetchPhoneNumbers, deletePhoneNumber } from "@/store/phoneNumberSlice"
 import { fetchAgents, fetchAgentById } from "@/store/agentSlice"
 import { AppDispatch, RootState } from "@/store/store"
 import LoadingOverlay from "@/components/loadingOverlay"
-
-
+import { fetchTwilioAccounts, setSelectedAccount } from "@/store/twilioSlice"
 
 export default function PhoneNumbersPage() {
   const [isAddPhoneNumberOpen, setIsAddPhoneNumberOpen] = useState(false)
@@ -24,47 +23,65 @@ export default function PhoneNumbersPage() {
   const phoneNumbers = useSelector((state: RootState) => state.phoneNumbers.data);
   const phoneNumbersStatus = useSelector((state: RootState) => state.phoneNumbers.status);
   const phoneNumbersError = useSelector((state: RootState) => state.phoneNumbers.error);
+  const twilioAccounts = useSelector((state: RootState) => state.twilio.accounts);
+  const selectedAccountId = useSelector((state: RootState) => state.twilio.selectedAccountId);
   
-  console.log(phoneNumbers);
   useEffect(() => {
     if (phoneNumbersStatus === 'idle') {
       dispatch(fetchPhoneNumbers());
     }
-    dispatch(fetchAgents())
-  }, [phoneNumbersStatus, dispatch, phoneNumbers, phoneNumbersError]);
-  
-  // const getAgentName = async (agentId: string) => {
-  //   if (!agentId) return "";
-  //   try {
-  //     const agent = await dispatch(fetchAgentById(parseInt(agentId))).unwrap();
-  //     return agent ? agent.name : "";
-  //   } catch (error) {
-  //     console.error("Error fetching agent:", error);
-  //     return "";
-  //   }
-  // };
+    dispatch(fetchAgents());
+    dispatch(fetchTwilioAccounts());
+  }, [phoneNumbersStatus, dispatch]);
+
+  const handleTwilioAccountChange = (accountId: string) => {
+    dispatch(setSelectedAccount(parseInt(accountId)));
+  };
 
   const handleTwilioNumberSuccess = () => {
-    dispatch(fetchPhoneNumbers())
-  }
+    dispatch(fetchPhoneNumbers());
+  };
+
+  const handleDeletePhoneNumber = async (phoneNumber: string) => {
+    if (window.confirm('Are you sure you want to delete this phone number?')) {
+      try {
+        await dispatch(deletePhoneNumber({ phoneNumber, accountId: selectedAccountId })).unwrap();
+        dispatch(fetchPhoneNumbers());
+      } catch (error) {
+        console.error('Error deleting phone number:', error);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white p-6">
       {phoneNumbersStatus === "loading" && <LoadingOverlay />}
       <div className="max-w-7xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold">Phone Numbers</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Phone Numbers</h1>
+          <Select 
+            value={selectedAccountId?.toString()} 
+            onValueChange={handleTwilioAccountChange}
+          >
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder="Select Twilio Account" />
+            </SelectTrigger>
+            <SelectContent>
+              {twilioAccounts.map((account) => (
+                <SelectItem key={account.id} value={account.id.toString()}>
+                  {account.friendly_name}
+                  {account.is_default && " (Default)"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className="flex flex-wrap gap-4">
-          {/* <Button
-            className="bg-[#E9D8FD] hover:bg-[#E9D8FD]/90 text-black gap-2"
-            onClick={() => setIsAddPhoneNumberOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Add Phone Number
-          </Button> */}
           <Button
             className="bg-[#9F7AEA] hover:bg-[#9F7AEA]/90 text-white gap-2"
             onClick={() => setIsAddTwilioNumberOpen(true)}
+            disabled={!selectedAccountId}
           >
             <Plus className="h-4 w-4" />
             Add Twilio Number
@@ -115,6 +132,7 @@ export default function PhoneNumbersPage() {
             <div className="text-sm font-medium text-purple-600">Phone Number</div>
             <div className="text-sm font-medium text-purple-600">Status</div>
             <div className="text-sm font-medium text-purple-600">Assigned Agent</div>
+            <div className="text-sm font-medium text-purple-600">Actions</div>
           </div>
 
           {phoneNumbersStatus === 'succeeded' && phoneNumbers && phoneNumbers.length > 0 && (
@@ -129,6 +147,16 @@ export default function PhoneNumbersPage() {
                     ) : (
                       ""
                     )}
+                  </div>
+                  <div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => handleDeletePhoneNumber(phoneNumber.phone_number)}
+                    >
+                      Delete
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -147,12 +175,16 @@ export default function PhoneNumbersPage() {
         </div>
       </div>
 
-      <AddPhoneNumberModal open={isAddPhoneNumberOpen} onClose={() => setIsAddPhoneNumberOpen(false)} />
+      <AddPhoneNumberModal 
+        open={isAddPhoneNumberOpen} 
+        onClose={() => setIsAddPhoneNumberOpen(false)} 
+      />
 
       <AddTwilioNumberModal 
         open={isAddTwilioNumberOpen} 
         onClose={() => setIsAddTwilioNumberOpen(false)}
         onSuccess={handleTwilioNumberSuccess}
+        twilioAccountId={selectedAccountId}
       />
     </div>
   )

@@ -191,7 +191,7 @@ export default function CreateAgentPage() {
     // Register call using selected agent
     async function registerCall(agentId: string): Promise<RegisterCallResponse> {
         try {
-          const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/create-web-call", {
+          const response = await fetch("http://localhost:8080/create-web-call", {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
@@ -350,7 +350,7 @@ export default function CreateAgentPage() {
               <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/analytics`)}>
                 <BarChart2 className="w-4 h-4" /> View Analytics
               </Button>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/calendar`)}>
                 <Calendar className="w-4 h-4" /> Calendar
               </Button>
               <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/call-logs`)}>

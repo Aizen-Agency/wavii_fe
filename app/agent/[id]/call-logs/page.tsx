@@ -4,7 +4,7 @@ import { ArrowLeft, Search } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCallLogs } from '@/store/callLogSlice'; // Adjust the import path as necessary
 import { AppDispatch, RootState } from '@/store/store';
@@ -36,6 +36,16 @@ interface ProductCost {
   cost: number;
 }
 
+// interface CallLog {
+//   call_id: string;
+//   start_timestamp: string;
+//   transcript: string;
+//   call_analysis: CallAnalysis;
+//   call_cost: CallCost;
+//   disconnection_reason: string;
+//   recording_url: string;
+// }
+
 
 
 export default function CallLogsPage() {
@@ -46,9 +56,12 @@ export default function CallLogsPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<{ title: string, content: JSX.Element } | null>(null);
+  // const [seenCallIds, setSeenCallIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-      dispatch(fetchCallLogs({ agentId: Number(agentId) }))
+    // Reset seen call IDs when agent ID changes
+    // setSeenCallIds(new Set());
+    dispatch(fetchCallLogs({ agentId: Number(agentId) }))
   }, [dispatch, agentId])
 
   const handleLoadMore = () => {
@@ -57,6 +70,24 @@ export default function CallLogsPage() {
       dispatch(fetchCallLogs({ agentId: Number(agentId), paginationKey: lastCallId }))
     }
   }
+
+  // Filter out duplicate call logs
+  const uniqueLogs = useMemo(() => {
+    const unique = new Map();
+    logs.forEach(log => {
+      if (!unique.has(log.call_id)) {
+        unique.set(log.call_id, log);
+      }
+    });
+    return Array.from(unique.values());
+  }, [logs]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Logs:', logs);
+    console.log('Unique Logs:', uniqueLogs);
+    console.log('Status:', status);
+  }, [logs, uniqueLogs, status]);
 
   const openModal = (title: string, content: JSX.Element) => {
     setModalContent({ title, content });
@@ -97,6 +128,64 @@ export default function CallLogsPage() {
     </div>
   );
 
+  const renderTranscript = (transcript: string) => {
+    // Split transcript into messages
+    const messages = transcript.split('\n').filter(msg => msg.trim());
+    
+    return (
+      <div className="space-y-4">
+        {messages.map((message, index) => {
+          // Check if message starts with "Agent:" or "User:"
+          const isAgent = message.startsWith('Agent:');
+          // const isUser = message.startsWith('User:');
+          
+          // Extract the actual message content
+          const content = message.replace(/^(Agent:|User:)\s*/, '');
+          
+          return (
+            <div 
+              key={index} 
+              className={`flex ${isAgent ? 'justify-start' : 'justify-end'}`}
+            >
+              <div 
+                className={`max-w-[80%] rounded-lg p-3 ${
+                  isAgent 
+                    ? 'bg-blue-100 text-blue-900' 
+                    : 'bg-green-100 text-green-900'
+                }`}
+              >
+                <div className="font-semibold mb-1">
+                  {isAgent ? 'Agent' : 'User'}
+                </div>
+                <div className="whitespace-pre-wrap">{content}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderAudioPlayer = (recordingUrl: string) => {
+    if (!recordingUrl) {
+      return <div className="text-gray-500">No recording available</div>;
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <audio controls className="h-8">
+          <source src={recordingUrl} type="audio/mpeg" />
+          Your browser does not support the audio element.
+        </audio>
+      </div>
+    );
+  };
+
+  const truncateCallId = (callId: string) => {
+    if (callId.length <= 15) return callId;
+    return `${callId.slice(0, 7)}...${callId.slice(-7)}`;
+  };
+
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -117,9 +206,10 @@ export default function CallLogsPage() {
         </div>
 
         <div className="border rounded-lg">
-          <div className="grid grid-cols-7 gap-4 p-4 border-b bg-gray-50">
+          <div className="grid grid-cols-8 gap-4 p-4 border-b bg-gray-50">
             <div className="font-medium col-span-2">Session ID</div>
             <div className="font-medium">Date</div>
+            <div className="font-medium">Recording</div>
             <div className="font-medium">Messages</div>
             <div className="font-medium">Transcript</div>
             <div className="font-medium">Call Analysis</div>
@@ -127,26 +217,47 @@ export default function CallLogsPage() {
             <div className="font-medium">Disconnection Reason</div>
           </div>
 
-          {logs.length > 0 ? (
-            logs.map((log) => (
-              <div key={log.call_id} className="grid grid-cols-7 gap-4 p-4">
-                <div className="col-span-2">{log.call_id}</div>
+          {status === 'loading' ? (
+            <div className="p-4 text-center">Loading...</div>
+          ) : uniqueLogs.length > 0 ? (
+            uniqueLogs.map((log) => (
+              <div key={log.call_id} className="grid grid-cols-8 gap-4 p-4">
+                <div className="col-span-2">
+                  <div 
+                    className="truncate cursor-help" 
+                    title={log.call_id}
+                  >
+                    {truncateCallId(log.call_id)}
+                  </div>
+                </div>
                 <div>
                   {new Date(log.start_timestamp).toLocaleDateString('en-GB')}<br />
                   {new Date(log.start_timestamp).toLocaleTimeString()}
                 </div>
                 <div>
-                  <button onClick={() => openModal('Transcript', <p>{log.transcript}</p>)} className="text-blue-500 underline">
+                  {renderAudioPlayer(log.recording_url)}
+                </div>
+                <div>
+                  <button 
+                    onClick={() => openModal('Transcript', renderTranscript(log.transcript))} 
+                    className="text-blue-500 underline"
+                  >
                     View Transcript
                   </button>
                 </div>
                 <div>
-                  <button onClick={() => openModal('Call Analysis', renderCallAnalysis(log.call_analysis))} className="text-blue-500 underline">
+                  <button 
+                    onClick={() => openModal('Call Analysis', renderCallAnalysis(log.call_analysis))} 
+                    className="text-blue-500 underline"
+                  >
                     View Analysis
                   </button>
                 </div>
                 <div>
-                  <button onClick={() => openModal('Call Cost', renderCallCost(log.call_cost))} className="text-blue-500 underline">
+                  <button 
+                    onClick={() => openModal('Call Cost', renderCallCost(log.call_cost))} 
+                    className="text-blue-500 underline"
+                  >
                     View Cost
                   </button>
                 </div>
@@ -154,14 +265,16 @@ export default function CallLogsPage() {
               </div>
             ))
           ) : (
-            <div className="p-4 text-gray-500 text-center">No results found</div>
+            <div className="p-4 text-gray-500 text-center">
+              {logs.length === 0 ? "No results found" : "No unique results found"}
+            </div>
           )}
         </div>
 
-        {status === 'loading' && <div className="text-center">Loading...</div>}
-
         <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-500">Showing {logs.length} results</div>
+          <div className="text-sm text-gray-500">
+            Showing {uniqueLogs.length} of {logs.length} results
+          </div>
           <Button onClick={handleLoadMore} disabled={status === 'loading'} className="text-sm">
             Load More
           </Button>
@@ -170,10 +283,13 @@ export default function CallLogsPage() {
 
       {isModalOpen && modalContent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg max-w-lg w-full">
+          <div className="bg-white p-6 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">{modalContent.title}</h2>
             <div className="mb-4">{modalContent.content}</div>
-            <button onClick={closeModal} className="bg-blue-500 text-white px-4 py-2 rounded">
+            <button 
+              onClick={closeModal} 
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
               Close
             </button>
           </div>

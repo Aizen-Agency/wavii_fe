@@ -16,6 +16,7 @@ interface PhoneNumber {
     friendly_name: string;
     phone_number_sid: string;
     inbound_agent_id?: string;
+    twilio_account_id: number;
 }
 
 // Define a thunk for fetching phone numbers
@@ -24,13 +25,11 @@ export const fetchPhoneNumbers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/list-phone-numbers', {
+      const response = await axios.get('http://localhost:8080/list-phone-numbers', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
-
-      
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -48,7 +47,7 @@ export const fetchAvailableNumbers = createAsyncThunk(
     if (!countryCode) {
       countryCode = 'US';
     }
-    const getTrunks = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/get-trunks', {
+    const getTrunks = await axios.get('http://localhost:8080/get-trunks', {
         headers: {
             'twilio-sid': accountSid,
             'twilio-auth-token': authToken,
@@ -56,7 +55,7 @@ export const fetchAvailableNumbers = createAsyncThunk(
           },
     }); 
 
-    const availableNumbersResponse = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/available-numbers?country=${countryCode}`, {
+    const availableNumbersResponse = await axios.get(`http://localhost:8080/available-numbers?country=${countryCode}`, {
       headers: {
         'twilio-sid': accountSid,
         'twilio-auth-token': authToken,
@@ -64,7 +63,7 @@ export const fetchAvailableNumbers = createAsyncThunk(
       },
     });
 
-    const availableNumbersAlreadybought = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/active-numbers-twilio', {
+    const availableNumbersAlreadybought = await axios.get('http://localhost:8080/active-numbers-twilio', {
         headers: {
           'twilio-sid': accountSid,
           'twilio-auth-token': authToken,
@@ -88,7 +87,7 @@ export const activateNumber = createAsyncThunk(
   'phoneNumbers/activateNumber',
   async (phoneNumber: string, { getState }) => {
     const state: any = getState();
-    const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/activate-number', {
+    const response = await axios.post('http://localhost:8080/activate-number', {
       phoneNumber,
     }, {
       headers: {
@@ -130,7 +129,7 @@ export const activateNumber = createAsyncThunk(
         throw new Error("Account SID and Auth Token must be provided");
       }
 
-      const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/register-to-trunk", {
+      const response = await fetch("http://localhost:8080/register-to-trunk", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -168,7 +167,7 @@ export const activateNumber = createAsyncThunk(
         };
     
         try {
-          const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/create-trunk", {
+          const response = await fetch("http://localhost:8080/create-trunk", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -200,7 +199,7 @@ export const registerToTrunk = createAsyncThunk(
   async ({ phonesid, accountSid, authToken }: { phonesid: string, accountSid: string, authToken: string }, { getState }) => {
     let domain_name = '';
     let trunk = null;
-    const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/get-trunks", {
+    const response = await fetch("http://localhost:8080/get-trunks", {
         headers: {
           "Content-Type": "application/json",
           "twilio-sid": accountSid,
@@ -230,20 +229,58 @@ export const registerToTrunk = createAsyncThunk(
   }
 );
 
+// Thunk to delete a phone number
+export const deletePhoneNumber = createAsyncThunk(
+  'phoneNumbers/deletePhoneNumber',
+  async ({ phoneNumber, accountId }: { phoneNumber: string; accountId: number | null }, { rejectWithValue }) => {
+    if (!accountId) {
+      return rejectWithValue('No Twilio account selected');
+    }
+    try {
+      const token = localStorage.getItem('access_token');
+      await axios.delete(`http://localhost:8080/delete-phone-number/${phoneNumber}?twilio_account_id=${accountId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return phoneNumber;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : 'An unknown error occurred'
+      );
+    }
+  }
+);
+
+// Define the initial state
+interface PhoneNumbersState {
+  data: PhoneNumber[];
+  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  error: string | null;
+  availableNumbers: PhoneNumber[];
+  activeNumbers: PhoneNumber[];
+  accountSid: string | null;
+  authToken: string | null;
+}
+
+const initialState: PhoneNumbersState = {
+  data: [],
+  status: 'idle',
+  error: null,
+  availableNumbers: [],
+  activeNumbers: [],
+  accountSid: null,
+  authToken: null,
+};
+
+// Create the slice
 const phoneNumberSlice = createSlice({
   name: 'phoneNumbers',
-  initialState: {
-    data: [] as PhoneNumber[],
-    status: 'idle',
-    error: null as string | null,
-    availableNumbers: [] as PhoneNumber[],
-    activeNumbers: [] as PhoneNumber[],
-    accountSid: '', // Ensure these are initialized
-    authToken: '',
-  },
+  initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // Handle fetchPhoneNumbers
       .addCase(fetchPhoneNumbers.pending, (state) => {
         state.status = 'loading';
       })
@@ -255,18 +292,33 @@ const phoneNumberSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload as string;
       })
+      // Handle fetchAvailableNumbers
       .addCase(fetchAvailableNumbers.fulfilled, (state, action) => {
         state.availableNumbers = action.payload;
       })
+      // Handle activateNumber
       .addCase(activateNumber.fulfilled, (state, action) => {
         state.activeNumbers.push(action.payload);
         state.availableNumbers = state.availableNumbers.filter(
           number => number.phone_number !== action.payload.phone_number
         );
       })
+      // Handle registerToTrunk
       .addCase(registerToTrunk.fulfilled, (state, action) => {
         // Handle the successful registration to trunk here
         // For example, you might want to update the state with the new trunk information
+      })
+      // Handle deletePhoneNumber
+      .addCase(deletePhoneNumber.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(deletePhoneNumber.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.data = state.data.filter(phone => phone.phone_number !== action.payload);
+      })
+      .addCase(deletePhoneNumber.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
       });
   },
 });

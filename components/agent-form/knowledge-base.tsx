@@ -12,6 +12,7 @@ interface KnowledgeBase {
   knowledge_base_sources: {
     filename: string;
     file_url: string;
+    file_size: string;
   }[];
 }
 
@@ -108,6 +109,7 @@ export function KnowledgeBase({ formData }: KnowledgeBaseProps) {
                       <a href={source.file_url} className="text-blue-500 hover:underline">
                         {source.filename}
                       </a>
+                      <span className="text-gray-500 ml-2">{(Number(source.file_size) / 1024).toFixed(2)} KB</span>
                     </li>
                   ))}
                 </ul>

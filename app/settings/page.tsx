@@ -2,10 +2,12 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+// import { useRouter } from "next/navigation"
 import { useDispatch } from "react-redux"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import TwilioAccounts from "./twilio-accounts"
 
 import type { AppDispatch } from "@/store/store"
 import { updateUser } from "@/store/authSlice"
@@ -15,8 +17,8 @@ type UserData = {
   [key: string]: string | number | object | boolean;
 };
 
-export default function QuickCreatePage() {
-  const router = useRouter()
+export default function SettingsPage() {
+  // const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
   const [formData, setFormData] = useState({
     name: "",
@@ -99,156 +101,142 @@ export default function QuickCreatePage() {
   console.log("formData email", formData.email)
   return (
     <div className="min-h-screen bg-white p-6">
-      <div className="max-w-xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         <div className="text-center">
-          <div className="inline-block rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-800">User Settings</div>
+          <div className="inline-block rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-800">Settings</div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          
+        <Tabs defaultValue="user" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="user">User Settings</TabsTrigger>
+            <TabsTrigger value="twilio">Twilio Accounts</TabsTrigger>
+          </TabsList>
 
-          {/* <div className="space-y-2">
-            <div className="text-sm font-medium">Retell Key</div>
-            <Input
-              type="text"
-              placeholder="Enter retell key"
-              value={formData.retellKey}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  retellKey: e.target.value,
-                }))
-              }
-            />
-          </div> */}
+          <TabsContent value="user" className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6 max-w-xl mx-auto">
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Email</div>
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
+                  }
+                />
+              </div>
 
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Email</div>
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  email: e.target.value,
-                }))
-              }
-            />
-          </div>
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Company Name</div>
+                <Input
+                  type="text"
+                  placeholder="Enter company name"
+                  value={formData.companyName}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      companyName: e.target.value,
+                    }))
+                  }
+                />
+              </div>
 
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Company Name</div>
-            <Input
-              type="text"
-              placeholder="Enter company name"
-              value={formData.companyName}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  companyName: e.target.value,
-                }))
-              }
-            />
-          </div>
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Stripe Customer ID</div>
+                <Input
+                  type="text"
+                  placeholder="Enter Stripe customer ID"
+                  value={formData.stripeCustomerId}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      stripeCustomerId: e.target.value,
+                    }))
+                  }
+                />
+              </div>
 
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Stripe Customer ID</div>
-            <Input
-              type="text"
-              placeholder="Enter Stripe customer ID"
-              value={formData.stripeCustomerId}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  stripeCustomerId: e.target.value,
-                }))
-              }
-            />
-          </div>
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Logo URL</div>
+                <Input
+                  type="url"
+                  placeholder="Enter logo URL"
+                  value={formData.logoUrl}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      logoUrl: e.target.value,
+                    }))
+                  }
+                />
+              </div>
 
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Logo URL</div>
-            <Input
-              type="url"
-              placeholder="Enter logo URL"
-              value={formData.logoUrl}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  logoUrl: e.target.value,
-                }))
-              }
-            />
-          </div>
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Color Scheme</div>
+                <Input
+                  type="color"
+                  value={formData.colorScheme}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      colorScheme: e.target.value,
+                    }))
+                  }
+                />
+              </div>
 
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Color Scheme</div>
-            <Input
-              type="color"
-              value={formData.colorScheme}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  colorScheme: e.target.value,
-                }))
-              }
-            />
-          </div>
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Login Heading</div>
+                <Input
+                  type="text"
+                  placeholder="Enter login heading"
+                  value={formData.loginHeading}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      loginHeading: e.target.value,
+                    }))
+                  }
+                />
+              </div>
 
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Login Heading</div>
-            <Input
-              type="text"
-              placeholder="Enter login heading"
-              value={formData.loginHeading}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  loginHeading: e.target.value,
-                }))
-              }
-            />
-          </div>
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Login Subheading</div>
+                <Input
+                  type="text"
+                  placeholder="Enter login subheading"
+                  value={formData.loginSubheading}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      loginSubheading: e.target.value,
+                    }))
+                  }
+                />
+              </div>
 
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Login Subheading</div>
-            <Input
-              type="text"
-              placeholder="Enter login subheading"
-              value={formData.loginSubheading}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  loginSubheading: e.target.value,
-                }))
-              }
-            />
-          </div>
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Available Credits</div>
+                <Input
+                  type="number"
+                  value={formData.availableCredits}
+                  readOnly
+                />
+              </div>
 
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Available Credits</div>
-            <Input
-              type="number"
-              value={formData.availableCredits}
-              readOnly
-            />
-          </div>
+              <div className="flex justify-end">
+                <Button type="submit">Save Changes</Button>
+              </div>
+            </form>
+          </TabsContent>
 
-          <Button type="submit" className="w-full bg-black hover:bg-black/90 rounded-lg h-11">
-            Submit
-          </Button>
-
-          <div className="text-center pt-2">
-            <button
-              type="button"
-              onClick={() => router.push("/agents")}
-              className="text-blue-600 hover:underline text-sm"
-            >
-              Back
-            </button>
-          </div>
-        </form>
+          <TabsContent value="twilio">
+            <TwilioAccounts />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

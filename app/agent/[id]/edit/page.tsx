@@ -84,6 +84,10 @@ export default function EditAgentPage() {
     }
   }
 
+  const handleStepClick = (stepId: number) => {
+    setCurrentStep(stepId);
+  }
+
   const renderStep = () => {
     console.log(currentStep);
     switch (currentStep) {
@@ -117,14 +121,21 @@ export default function EditAgentPage() {
           {/* Progress Steps */}
           <div className="flex justify-between mb-8">
             {steps.map((step) => (
-              <div key={step.id} className="flex flex-col items-center">
+              <div 
+                key={step.id} 
+                className="flex flex-col items-center cursor-pointer"
+                onClick={() => handleStepClick(step.id)}
+              >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm
-                    ${currentStep >= step.id ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-400"}`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-colors
+                    ${currentStep >= step.id ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-400"}
+                    hover:bg-purple-500 hover:text-white`}
                 >
                   {currentStep > step.id ? "✓" : step.id}
                 </div>
-                <span className="text-sm mt-2 text-gray-600">{step.name}</span>
+                <span className={`text-sm mt-2 ${currentStep >= step.id ? "text-purple-600" : "text-gray-600"}`}>
+                  {step.name}
+                </span>
               </div>
             ))}
           </div>

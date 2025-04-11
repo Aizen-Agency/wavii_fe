@@ -28,6 +28,8 @@ export default function PhoneActivation() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [toNumber, setToNumber] = useState("")
   const [selectedPhoneNumber, setSelectedPhoneNumber] = useState("")
+  const [isBatchCall, setIsBatchCall] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   useEffect(() => {
     const loadData = async () => {
@@ -55,7 +57,7 @@ export default function PhoneActivation() {
     const isCurrentlyInbound = phoneStatuses[phone_number_sid]?.inbound;
 
     try {
-      const response = await axios.patch('https://retell-demo-be-cfbda6d152df.herokuapp.com/update-phone-number', {
+      const response = await axios.patch('http://localhost:8080/update-phone-number', {
         phone_number: phoneNumber.phone_number,
         inbound_agent_id: isCurrentlyInbound ? null : agent?.retell_agent_id
       }, {
@@ -106,7 +108,7 @@ export default function PhoneActivation() {
       const payload = isCurrentlyOutbound ? {} : { phone_number: phoneNumber.phone_number };
 
       const response = await axios.put(
-        `https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${id}/outbound-phone`,
+        `http://localhost:8080/agents/${id}/outbound-phone`,
         payload,
         {
           headers: {
@@ -151,7 +153,7 @@ export default function PhoneActivation() {
 
   const checkIsInbound = async (phone_number: string) => {
     try {
-      const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${id}/check-phone-number/${phone_number}`, {
+      const response = await axios.get(`http://localhost:8080/agents/${id}/check-phone-number/${phone_number}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}` // Assuming JWT is stored in localStorage
         }
@@ -199,6 +201,8 @@ export default function PhoneActivation() {
     setIsModalOpen(false)
     setToNumber("")
     setSelectedPhoneNumber("")
+    setIsBatchCall(false)
+    setSelectedFile(null)
   }
 
   const startCall = async (from_number: string, to_number: string) => {
@@ -206,7 +210,7 @@ export default function PhoneActivation() {
     handleModalClose()
     
     try {
-      await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/create-phone-call', {
+      await axios.post('http://localhost:8080/create-phone-call', {
         to_number: to_number,
         agent_id: agent?.retell_agent_id,
         from_number: from_number
@@ -230,6 +234,54 @@ export default function PhoneActivation() {
         closeButton: false,
         closeOnClick: true
       });
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      if (file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+        toast.error('Please upload an Excel file (.xlsx)', {
+          position: "top-right",
+          autoClose: 3000,
+          closeButton: false,
+          closeOnClick: true
+        })
+        return
+      }
+      setSelectedFile(file)
+    }
+  }
+
+  const startBatchCall = async (from_number: string, file: File) => {
+    handleModalClose()
+    
+    try {
+      const formData = new FormData()
+      formData.append('sheet', file)
+      formData.append('from_number', from_number)
+
+      await axios.post('http://localhost:8080/create-batch-call', formData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      
+      toast.success('Batch call initiated successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        closeButton: false,
+        closeOnClick: true
+      })
+    } catch (error) {
+      console.error('Error starting batch call:', error)
+      toast.error('Failed to initiate batch call. Please try again.', {
+        position: "top-right",
+        autoClose: 3000,
+        closeButton: false,
+        closeOnClick: true
+      })
     }
   }
 
@@ -319,21 +371,54 @@ export default function PhoneActivation() {
               <DialogTitle>Start Outbound Call</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number to Call</Label>
-                <Input
-                  id="phone"
-                  placeholder="Enter phone number (e.g., +1234567890)"
-                  value={toNumber}
-                  onChange={(e) => setToNumber(e.target.value)}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={isBatchCall}
+                  onCheckedChange={setIsBatchCall}
                 />
+                <Label>Batch Call</Label>
               </div>
-              <Button
-                className="w-full"
-                onClick={() => startCall(selectedPhoneNumber, toNumber)}
-              >
-                Start Call
-              </Button>
+
+              {!isBatchCall ? (
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number to Call</Label>
+                  <Input
+                    id="phone"
+                    placeholder="Enter phone number (e.g., +1234567890)"
+                    value={toNumber}
+                    onChange={(e) => setToNumber(e.target.value)}
+                  />
+                  <Button
+                    className="w-full"
+                    onClick={() => startCall(selectedPhoneNumber, toNumber)}
+                  >
+                    Start Call
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Upload Excel File</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="file"
+                        accept=".xlsx"
+                        onChange={handleFileChange}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      File must contain columns: phone_number, status
+                    </p>
+                  </div>
+                  <Button
+                    className="w-full"
+                    onClick={() => selectedFile && startBatchCall(selectedPhoneNumber, selectedFile)}
+                    disabled={!selectedFile}
+                  >
+                    Start Batch Call
+                  </Button>
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>

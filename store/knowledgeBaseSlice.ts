@@ -31,7 +31,7 @@ export const fetchKnowledgeBases = createAsyncThunk(
   async (agentId: number, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get(`http://localhost:8080/agents/${agentId}/knowledge-bases`, {
+      const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/knowledge-bases`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -55,7 +55,7 @@ export const uploadFilesThunk = createAsyncThunk(
       });
 
       const response = await axios.post(
-        `http://localhost:8080/agents/${agentId}/upload-files-create-kbs`,
+        `https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/upload-files-create-kbs`,
         formData,
         {
           headers: {
@@ -82,7 +82,7 @@ export const deleteKnowledgeBaseThunk = createAsyncThunk(
   async (knowledgeBaseId: number, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      await axios.delete(`http://localhost:8080/delete-knowledge-base/${knowledgeBaseId}`, {
+      await axios.delete(`https://retell-demo-be-cfbda6d152df.herokuapp.com/delete-knowledge-base/${knowledgeBaseId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -82,7 +82,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const fetchSchedules = async () => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`http://localhost:8080/agents/${agentId}/schedules`, {
+      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/schedules`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -190,7 +190,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
         })
       })
 
-      const response = await fetch(`http://localhost:8080/agents/${agentId}/schedules/${schedule.id}`, {
+      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/schedules/${schedule.id}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

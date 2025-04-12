@@ -42,7 +42,7 @@ export const fetchTwilioAccounts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get('http://localhost:8080/twilio-accounts', {
+      const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/twilio-accounts', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -62,7 +62,7 @@ export const addTwilioAccount = createAsyncThunk(
   async (accountData: { account_sid: string; auth_token: string; friendly_name: string; is_default: boolean }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.post('http://localhost:8080/twilio-accounts', accountData, {
+      const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/twilio-accounts', accountData, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -82,7 +82,7 @@ export const updateTwilioAccount = createAsyncThunk(
   async (accountData: { id: number; friendly_name?: string; is_default?: boolean }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.patch(`http://localhost:8080/twilio-accounts/${accountData.id}`, accountData, {
+      const response = await axios.patch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/twilio-accounts/${accountData.id}`, accountData, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -102,7 +102,7 @@ export const deleteTwilioAccount = createAsyncThunk(
   async (accountId: number, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      await axios.delete(`http://localhost:8080/twilio-accounts/${accountId}`, {
+      await axios.delete(`https://retell-demo-be-cfbda6d152df.herokuapp.com/twilio-accounts/${accountId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -122,7 +122,7 @@ export const fetchAvailableNumbers = createAsyncThunk(
   async ({ country, accountId }: { country: string; accountId: number }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get(`http://localhost:8080/available-numbers?country=${country}`, {
+      const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/available-numbers?country=${country}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'twilio-account-id': accountId.toString()
@@ -143,7 +143,7 @@ export const fetchActiveNumbers = createAsyncThunk(
   async (accountId: number, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get(`http://localhost:8080/active-numbers`, {
+      const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/active-numbers`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'twilio-account-id': accountId.toString()
@@ -171,7 +171,7 @@ export const createTrunk = createAsyncThunk(
     try {
       const token = localStorage.getItem('access_token');
       const domainName = generateUniqueDomainName();
-      const response = await axios.post('http://localhost:8080/create-trunk', {
+      const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/create-trunk', {
         DomainName: domainName,
         FriendlyName: domainName,
         OriginationUrlName: 'sip:5t4n6j0wnrl.sip.livekit.cloud'
@@ -197,7 +197,7 @@ export const ensureTrunkExists = createAsyncThunk(
     try {
       // First fetch existing trunks
       const token = localStorage.getItem('access_token');
-      const response = await axios.get('http://localhost:8080/get-trunks', {
+      const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/get-trunks', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'twilio-account-id': accountId.toString()
@@ -224,7 +224,7 @@ export const fetchTrunks = createAsyncThunk(
   async (accountId: number, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get(`http://localhost:8080/get-trunks`, {
+      const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/get-trunks`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'twilio-account-id': accountId.toString()
@@ -264,7 +264,7 @@ export const registerPhoneToTrunk = createAsyncThunk(
       // Always use the first trunk's SID
       const trunkToUse = trunkSid || trunkResult.sid;
       
-      const response = await axios.post('http://localhost:8080/register-to-trunk', {
+      const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/register-to-trunk', {
         phonesid: phoneSid === "" ? null : phoneSid,
         termination_uri: terminationUri,
         trunksid: trunkToUse,
@@ -296,7 +296,7 @@ export const activateNumber = createAsyncThunk(
   }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.post('http://localhost:8080/activate-number', {
+      const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/activate-number', {
         phone_number: phoneNumber,
       }, {
         headers: {
@@ -325,7 +325,7 @@ export const deactivateNumber = createAsyncThunk(
   }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.post('http://localhost:8080/deactivate-number', {
+      const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/deactivate-number', {
         phone_number: phoneNumber,
       }, {
         headers: {
@@ -354,7 +354,7 @@ export const purchaseNumber = createAsyncThunk(
   }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.post('http://localhost:8080/purchase-number', {
+      const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/purchase-number', {
         phone_number: phoneNumber,
       }, {
         headers: {

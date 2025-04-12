@@ -25,7 +25,7 @@ export const fetchPhoneNumbers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get('http://localhost:8080/list-phone-numbers', {
+      const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/list-phone-numbers', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -47,7 +47,7 @@ export const fetchAvailableNumbers = createAsyncThunk(
     if (!countryCode) {
       countryCode = 'US';
     }
-    const getTrunks = await axios.get('http://localhost:8080/get-trunks', {
+    const getTrunks = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/get-trunks', {
         headers: {
             'twilio-sid': accountSid,
             'twilio-auth-token': authToken,
@@ -55,7 +55,7 @@ export const fetchAvailableNumbers = createAsyncThunk(
           },
     }); 
 
-    const availableNumbersResponse = await axios.get(`http://localhost:8080/available-numbers?country=${countryCode}`, {
+    const availableNumbersResponse = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/available-numbers?country=${countryCode}`, {
       headers: {
         'twilio-sid': accountSid,
         'twilio-auth-token': authToken,
@@ -63,7 +63,7 @@ export const fetchAvailableNumbers = createAsyncThunk(
       },
     });
 
-    const availableNumbersAlreadybought = await axios.get('http://localhost:8080/active-numbers-twilio', {
+    const availableNumbersAlreadybought = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/active-numbers-twilio', {
         headers: {
           'twilio-sid': accountSid,
           'twilio-auth-token': authToken,
@@ -87,7 +87,7 @@ export const activateNumber = createAsyncThunk(
   'phoneNumbers/activateNumber',
   async (phoneNumber: string, { getState }) => {
     const state: any = getState();
-    const response = await axios.post('http://localhost:8080/activate-number', {
+    const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/activate-number', {
       phoneNumber,
     }, {
       headers: {
@@ -129,7 +129,7 @@ export const activateNumber = createAsyncThunk(
         throw new Error("Account SID and Auth Token must be provided");
       }
 
-      const response = await fetch("http://localhost:8080/register-to-trunk", {
+      const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/register-to-trunk", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -167,7 +167,7 @@ export const activateNumber = createAsyncThunk(
         };
     
         try {
-          const response = await fetch("http://localhost:8080/create-trunk", {
+          const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/create-trunk", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -199,7 +199,7 @@ export const registerToTrunk = createAsyncThunk(
   async ({ phonesid, accountSid, authToken }: { phonesid: string, accountSid: string, authToken: string }, { getState }) => {
     let domain_name = '';
     let trunk = null;
-    const response = await fetch("http://localhost:8080/get-trunks", {
+    const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/get-trunks", {
         headers: {
           "Content-Type": "application/json",
           "twilio-sid": accountSid,
@@ -238,7 +238,7 @@ export const deletePhoneNumber = createAsyncThunk(
     }
     try {
       const token = localStorage.getItem('access_token');
-      await axios.delete(`http://localhost:8080/delete-phone-number/${phoneNumber}?twilio_account_id=${accountId}`, {
+      await axios.delete(`https://retell-demo-be-cfbda6d152df.herokuapp.com/delete-phone-number/${phoneNumber}?twilio_account_id=${accountId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

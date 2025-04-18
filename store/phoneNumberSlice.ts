@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axiosInstance from '@/utils/axios';
 
 // Define the type for a phone number
 interface PhoneNumber {
@@ -24,12 +24,7 @@ export const fetchPhoneNumbers = createAsyncThunk(
   'phoneNumbers/fetchPhoneNumbers',
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/list-phone-numbers', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await axiosInstance.get('/list-phone-numbers');
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -43,36 +38,32 @@ export const fetchPhoneNumbers = createAsyncThunk(
 export const fetchAvailableNumbers = createAsyncThunk(
   'phoneNumbers/fetchAvailableNumbers',
   async ({ accountSid, authToken, countryCode }: { accountSid: string, authToken: string, countryCode: string }, { getState }) => {
-    const token = localStorage.getItem('access_token');
     if (!countryCode) {
       countryCode = 'US';
     }
-    const getTrunks = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/get-trunks', {
-        headers: {
-            'twilio-sid': accountSid,
-            'twilio-auth-token': authToken,
-            'Authorization': `Bearer ${token}`,
-          },
-    }); 
-
-    const availableNumbersResponse = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/available-numbers?country=${countryCode}`, {
+    const getTrunks = await axiosInstance.get('/get-trunks', {
       headers: {
         'twilio-sid': accountSid,
         'twilio-auth-token': authToken,
-        'Authorization': `Bearer ${token}`,
+      },
+    }); 
+
+    const availableNumbersResponse = await axiosInstance.get(`/available-numbers?country=${countryCode}`, {
+      headers: {
+        'twilio-sid': accountSid,
+        'twilio-auth-token': authToken,
       },
     });
 
-    const availableNumbersAlreadybought = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/active-numbers-twilio', {
-        headers: {
-          'twilio-sid': accountSid,
-          'twilio-auth-token': authToken,
-          'Authorization': `Bearer ${token}`,
-          'trunksid': getTrunks.data[0].sid,
-        },
-      });
+    const availableNumbersAlreadybought = await axiosInstance.get('/active-numbers-twilio', {
+      headers: {
+        'twilio-sid': accountSid,
+        'twilio-auth-token': authToken,
+        'trunksid': getTrunks.data[0].sid,
+      },
+    });
 
-      const availableNumbers = [...availableNumbersResponse.data, ...availableNumbersAlreadybought.data]
+    const availableNumbers = [...availableNumbersResponse.data, ...availableNumbersAlreadybought.data]
     for (const number of availableNumbers) {
       number.friendly_name = number.friendlyName;
       number.phone_number = number.phoneNumber;
@@ -87,7 +78,7 @@ export const activateNumber = createAsyncThunk(
   'phoneNumbers/activateNumber',
   async (phoneNumber: string, { getState }) => {
     const state: any = getState();
-    const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/activate-number', {
+    const response = await axiosInstance.post('/activate-number', {
       phoneNumber,
     }, {
       headers: {
@@ -99,99 +90,70 @@ export const activateNumber = createAsyncThunk(
   }
 );
 
+// Updated registerToTrunk function to accept an optional phone identifier
+const registerToTrunkFunction = async (phoneId?: string, domain_name?: string, trunk_sid?: string, accountSid?: string, authToken?: string) => {
+  // Use the passed-in phoneId if available, otherwise fall back to the state
+  const idToRegister = phoneId;
+  if (!idToRegister) {
+    alert("Please select a phone number to register.");
+    return;
+  }
+  const terminationUri = domain_name + ".pstn.dublin.twilio.com";
+  if (!domain_name || !terminationUri) {
+    alert("Please select a trunk and ensure termination URI is available.");
+    return;
+  }
 
- // Updated registerToTrunk function to accept an optional phone identifier
-  const registerToTrunkFunction = async (phoneId?: string, domain_name?: string, trunk_sid?: string, accountSid?: string, authToken?: string) => {
-    // Use the passed-in phoneId if available, otherwise fall back to the state
-    const token = localStorage.getItem('access_token');
-    const idToRegister = phoneId;
-    if (!idToRegister) {
-      alert("Please select a phone number to register.");
-      return;
-    }
-    const terminationUri = domain_name + ".pstn.dublin.twilio.com";
-    if (!domain_name || !terminationUri) {
-      alert("Please select a trunk and ensure termination URI is available.");
-      return;
-    }
-
-    const payload = {
-      // If the identifier is a phone number (starting with '+') then phonesid is null
-      phonesid: idToRegister.startsWith('+') ? null : idToRegister,
-      termination_uri: terminationUri,
-      trunksid: trunk_sid,
-      phoneNumbertoadd: idToRegister.startsWith('+') ? idToRegister : null
-    };
-
-    try {
-      // Ensure accountSid and authToken are defined
-      if (!accountSid || !authToken) {
-        throw new Error("Account SID and Auth Token must be provided");
-      }
-
-      const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/register-to-trunk", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "twilio-sid": accountSid,
-          "twilio-auth-token": authToken,
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Registered to trunk:", data);
-        // alert("Phone number successfully registered to trunk.");
-        // Optionally refresh active numbers after a successful registration.
-        // fetchActiveNumbers();
-      } else {
-        console.error("Failed to register phone to trunk");
-        alert("Failed to register phone to trunk");
-      }
-    } catch (err) {
-      console.error("Error in registerToTrunk:", err);
-      alert("Error occurred while registering phone to trunk");
-    }
+  const payload = {
+    // If the identifier is a phone number (starting with '+') then phonesid is null
+    phonesid: idToRegister.startsWith('+') ? null : idToRegister,
+    termination_uri: terminationUri,
+    trunksid: trunk_sid,
+    phoneNumbertoadd: idToRegister.startsWith('+') ? idToRegister : null
   };
 
-    // Updated createTrunk function to include Twilio credentials in headers
-    const createTrunk = async (trunkDomain: string, originationUrlName: string, friendlyName: string, accountSid: string, authToken: string) => {
-   
+  try {
+    // Ensure accountSid and authToken are defined
+    if (!accountSid || !authToken) {
+      throw new Error("Account SID and Auth Token must be provided");
+    }
 
-        // Build the payload.
-        const payload = {
-          DomainName: trunkDomain,
-          FriendlyName: friendlyName,
-          OriginationUrlName: originationUrlName
-        };
-    
-        try {
-          const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/create-trunk", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "twilio-sid": accountSid,
-              "twilio-auth-token": authToken
-            },
-            body: JSON.stringify(payload)
-          });
-          if (response.ok) {
-            const data = await response.json();
-            console.log("Trunk created successfully:", data);
-            return data;
-            // setSelectedTrunk(data);
-          } else {
-            console.error("Failed to create trunk");
-            return null;
-          }
-        } catch (error) {
-          console.error("Error creating trunk:", error);
-          return null;
-        }
-      };
-    
+    const response = await axiosInstance.post('/register-to-trunk', payload, {
+      headers: {
+        'twilio-sid': accountSid,
+        'twilio-auth-token': authToken
+      }
+    });
+    console.log("Registered to trunk:", response.data);
+  } catch (err) {
+    console.error("Error in registerToTrunk:", err);
+    alert("Error occurred while registering phone to trunk");
+  }
+};
 
+// Updated createTrunk function to include Twilio credentials in headers
+const createTrunk = async (trunkDomain: string, originationUrlName: string, friendlyName: string, accountSid: string, authToken: string) => {
+  // Build the payload.
+  const payload = {
+    DomainName: trunkDomain,
+    FriendlyName: friendlyName,
+    OriginationUrlName: originationUrlName
+  };
+
+  try {
+    const response = await axiosInstance.post('/create-trunk', payload, {
+      headers: {
+        'twilio-sid': accountSid,
+        'twilio-auth-token': authToken
+      }
+    });
+    console.log("Trunk created successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating trunk:", error);
+    return null;
+  }
+};
 
 // Thunk to register a phone number to a trunk
 export const registerToTrunk = createAsyncThunk(
@@ -199,7 +161,7 @@ export const registerToTrunk = createAsyncThunk(
   async ({ phonesid, accountSid, authToken }: { phonesid: string, accountSid: string, authToken: string }, { getState }) => {
     let domain_name = '';
     let trunk = null;
-    const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/get-trunks", {
+    const response = await fetch("http://localhost:8080/get-trunks", {
         headers: {
           "Content-Type": "application/json",
           "twilio-sid": accountSid,
@@ -238,7 +200,7 @@ export const deletePhoneNumber = createAsyncThunk(
     }
     try {
       const token = localStorage.getItem('access_token');
-      await axios.delete(`https://retell-demo-be-cfbda6d152df.herokuapp.com/delete-phone-number/${phoneNumber}?twilio_account_id=${accountId}`, {
+      await axiosInstance.delete(`/delete-phone-number/${phoneNumber}?twilio_account_id=${accountId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

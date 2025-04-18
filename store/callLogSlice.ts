@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from './store';
+import axiosInstance from '@/utils/axios';
 
 interface LatencyMetrics {
   p50: number;
@@ -99,25 +100,19 @@ const handle403Error = (error: Response) => {
 
 export const fetchCallLogs = createAsyncThunk(
   'callLogs/fetchCallLogs',
-  async ({ agentId, paginationKey }: { agentId: number; paginationKey?: string }, { getState, rejectWithValue }) => {
-    const token = localStorage.getItem('access_token'); // Assuming you have an auth slice to manage JWT tokens
-    const url = new URL(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/call-logs`);
+  async ({ agentId, paginationKey, searchQuery }: { agentId: number; paginationKey?: string; searchQuery?: string }, { getState, rejectWithValue }) => {
+    const url = new URL(`/agents/${agentId}/call-logs`);
     url.searchParams.append('limit', '50');
     if (paginationKey) {
       url.searchParams.append('pagination_key', paginationKey);
     }
+    if (searchQuery) {
+      url.searchParams.append('to_number', searchQuery);
+    }
     
     try {
-      const response = await fetch(url.toString(), {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) {
-        handle403Error(response);
-        throw new Error('Failed to fetch call logs');
-      }
-      return response.json();
+      const response = await axiosInstance.get(url.toString());
+      return response.data;
     } catch (error) {
       return rejectWithValue('Failed to fetch call logs');
     }
@@ -135,7 +130,11 @@ const callLogSlice = createSlice({
       })
       .addCase(fetchCallLogs.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.logs = [...state.logs, ...action.payload];
+        if (action.meta.arg.searchQuery || !action.meta.arg.paginationKey) {
+          state.logs = action.payload;
+        } else {
+          state.logs = [...state.logs, ...action.payload];
+        }
       })
       .addCase(fetchCallLogs.rejected, (state, action) => {
         state.status = 'failed';

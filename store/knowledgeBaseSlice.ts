@@ -1,6 +1,7 @@
 // knowledgeBaseSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import axiosInstance from '@/utils/axios';
 
 
 interface KnowledgeBase {
@@ -30,15 +31,9 @@ export const fetchKnowledgeBases = createAsyncThunk(
   'knowledgeBase/fetchKnowledgeBases',
   async (agentId: number, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/knowledge-bases`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axiosInstance.get(`/agents/${agentId}/knowledge-bases`);
       return response.data;
     } catch (err: any) {
-      handle403Error(err);
       return rejectWithValue(err.response?.data || 'Unknown error');
     }
   }
@@ -48,18 +43,16 @@ export const uploadFilesThunk = createAsyncThunk(
   'knowledgeBase/uploadFiles',
   async ({ agentId, files }: { agentId: number; files: File[] }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('access_token');
       const formData = new FormData();
       files.forEach(file => {
         formData.append('files', file);
       });
 
-      const response = await axios.post(
-        `https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/upload-files-create-kbs`,
+      const response = await axiosInstance.post(
+        `/agents/${agentId}/upload-files-create-kbs`,
         formData,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'multipart/form-data',
           },
         }
@@ -67,7 +60,6 @@ export const uploadFilesThunk = createAsyncThunk(
 
       return response.data;
     } catch (error) {
-      handle403Error(error);
       if (axios.isAxiosError(error)) {
         return rejectWithValue(error.response?.data || 'Unknown error');
       }
@@ -82,7 +74,7 @@ export const deleteKnowledgeBaseThunk = createAsyncThunk(
   async (knowledgeBaseId: number, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      await axios.delete(`https://retell-demo-be-cfbda6d152df.herokuapp.com/delete-knowledge-base/${knowledgeBaseId}`, {
+      await axios.delete(`http://localhost:8080/delete-knowledge-base/${knowledgeBaseId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

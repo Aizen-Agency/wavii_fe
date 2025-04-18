@@ -4,7 +4,12 @@ import { toast } from "react-toastify"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Plus, X } from "lucide-react"
+import { Plus, X, ChevronDown } from "lucide-react"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 interface TimeSlot {
   startTime: string
@@ -57,6 +62,17 @@ interface LocalSchedules {
   }[]
 }
 
+interface Booking {
+  id: number;
+  title: string;
+  startTime: string;
+  endTime: string;
+  attendees: Array<{
+    name: string;
+    email: string;
+  }>;
+}
+
 interface ScheduleCalendarProps {
   agentId: string
 }
@@ -67,6 +83,7 @@ const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'Jul
 
 export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const [schedules, setSchedules] = useState<ScheduleResponse | null>(null)
+  const [bookings, setBookings] = useState<Booking[]>([])
   const [currentDate, setCurrentDate] = useState(new Date())
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
@@ -75,14 +92,34 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
     slots: [{ startTime: "09:00", endTime: "17:00" }]
   })
 
+  const fetchBookings = async () => {
+    try {
+      const token = localStorage.getItem('access_token')
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/bookings`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (!response.ok) throw new Error('Failed to fetch bookings')
+      const data = await response.json()
+      if (data.status === 'success') {
+        setBookings(data.data.bookings)
+      }
+    } catch (error) {
+      console.error('Failed to fetch bookings', error)
+      toast.error('Failed to fetch bookings')
+    }
+  }
+
   useEffect(() => {
     fetchSchedules()
+    fetchBookings()
   }, [agentId])
 
   const fetchSchedules = async () => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/schedules`, {
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/schedules`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -115,6 +152,15 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
     )
 
     return availabilities.map(a => `${a.startTime} - ${a.endTime}`)
+  }
+
+  const getBookingsForDate = (date: Date) => {
+    return bookings.filter(booking => {
+      const bookingDate = new Date(booking.startTime)
+      return bookingDate.getDate() === date.getDate() &&
+        bookingDate.getMonth() === date.getMonth() &&
+        bookingDate.getFullYear() === date.getFullYear()
+    })
   }
 
   const handleEditDay = (dayName: string) => {
@@ -190,7 +236,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
         })
       })
 
-      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/schedules/${schedule.id}`, {
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/schedules/${schedule.id}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -214,6 +260,26 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   }
 
   const { daysInMonth, startingDay } = getDaysInMonth(currentDate)
+
+  const formatTime = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':')
+    const time = new Date()
+    time.setHours(parseInt(hours), parseInt(minutes))
+    return time.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    })
+  }
+
+  const formatBookingTime = (startTime: string) => {
+    const date = new Date(startTime)
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    })
+  }
 
   return (
     <>
@@ -246,7 +312,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
           ))}
 
           {Array.from({ length: startingDay }).map((_, index) => (
-            <div key={`empty-${index}`} className="h-24" />
+            <div key={`empty-${index}`} className="h-32" />
           ))}
 
           {Array.from({ length: daysInMonth }).map((_, index) => {
@@ -254,21 +320,55 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
             const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
             const dayName = days[date.getDay()]
             const availabilityTimes = getAvailabilityForDay(dayName)
+            const dayBookings = getBookingsForDate(date)
 
             return (
               <div
                 key={day}
-                onClick={() => handleEditDay(dayName)}
-                className={`h-24 p-2 border rounded cursor-pointer hover:border-blue-300 ${
+                className={`h-32 p-2 border rounded hover:border-blue-300 ${
                   availabilityTimes.length > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
                 }`}
               >
-                <div className="text-sm font-medium">{day}</div>
-                {availabilityTimes.map((time, i) => (
-                  <div key={i} className="text-xs text-green-600 mt-1">
-                    {time}
-                  </div>
-                ))}
+                <div className="flex justify-between items-center mb-1">
+                  <div className="text-sm font-medium">{day}</div>
+                  {availabilityTimes.length > 0 && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-48 p-2">
+                        <div className="text-xs font-medium mb-1">Available Times:</div>
+                        {availabilityTimes.map((time, i) => {
+                          const [start, end] = time.split(' - ')
+                          return (
+                            <div key={i} className="text-xs text-green-600 py-1">
+                              {formatTime(start)} - {formatTime(end)}
+                            </div>
+                          )
+                        })}
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </div>
+                
+                <div className="space-y-1 mt-1">
+                  {dayBookings.map((booking, i) => (
+                    <div 
+                      key={i} 
+                      className="text-xs bg-blue-50 p-1 rounded"
+                      title={`${booking.title}\nAttendee: ${booking.attendees[0]?.name}`}
+                    >
+                      <div className="font-medium text-blue-700">
+                        {formatBookingTime(booking.startTime)}
+                      </div>
+                      <div className="truncate text-blue-600">
+                        {booking.title}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )
           })}

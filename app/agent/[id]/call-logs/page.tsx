@@ -56,11 +56,10 @@ export default function CallLogsPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<{ title: string, content: JSX.Element } | null>(null);
-  // const [seenCallIds, setSeenCallIds] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
-    // Reset seen call IDs when agent ID changes
-    // setSeenCallIds(new Set());
     dispatch(fetchCallLogs({ agentId: Number(agentId) }))
   }, [dispatch, agentId])
 
@@ -186,6 +185,31 @@ export default function CallLogsPage() {
     return `${callId.slice(0, 7)}...${callId.slice(-7)}`;
   };
 
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      dispatch(fetchCallLogs({ agentId: Number(agentId) }));
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      dispatch(fetchCallLogs({ 
+        agentId: Number(agentId), 
+        searchQuery: searchQuery 
+      }));
+    } catch (error) {
+      console.error('Error searching call logs:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -198,19 +222,40 @@ export default function CallLogsPage() {
         </div>
 
         <div className="flex gap-2">
-          <Input placeholder="Search logs..." className="max-w-md" />
-          <Button className="bg-black hover:bg-black/90">
+          <Input 
+            placeholder="Search by phone number..." 
+            className="max-w-md text-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
+          />
+          <Button 
+            className="bg-black hover:bg-black/90 text-sm"
+            onClick={handleSearch}
+            disabled={isSearching}
+          >
             <Search className="h-4 w-4 mr-2" />
-            Search
+            {isSearching ? 'Searching...' : 'Search'}
           </Button>
+          {searchQuery && (
+            <Button 
+              className="bg-gray-500 hover:bg-gray-600 text-sm"
+              onClick={() => {
+                setSearchQuery('');
+                dispatch(fetchCallLogs({ agentId: Number(agentId) }));
+              }}
+            >
+              View All
+            </Button>
+          )}
         </div>
 
         <div className="border rounded-lg">
-          <div className="grid grid-cols-8 gap-4 p-4 border-b bg-gray-50">
+          <div className="grid grid-cols-9 gap-4 p-4 border-b bg-gray-50 text-sm">
             <div className="font-medium col-span-2">Session ID</div>
             <div className="font-medium">Date</div>
+            <div className="font-medium">To Number</div>
             <div className="font-medium">Recording</div>
-            <div className="font-medium">Messages</div>
             <div className="font-medium">Transcript</div>
             <div className="font-medium">Call Analysis</div>
             <div className="font-medium">Call Cost</div>
@@ -218,10 +263,10 @@ export default function CallLogsPage() {
           </div>
 
           {status === 'loading' ? (
-            <div className="p-4 text-center">Loading...</div>
+            <div className="p-4 text-center text-sm">Loading...</div>
           ) : uniqueLogs.length > 0 ? (
             uniqueLogs.map((log) => (
-              <div key={log.call_id} className="grid grid-cols-8 gap-4 p-4">
+              <div key={log.call_id} className="grid grid-cols-9 gap-4 p-4 text-sm">
                 <div className="col-span-2">
                   <div 
                     className="truncate cursor-help" 
@@ -233,6 +278,9 @@ export default function CallLogsPage() {
                 <div>
                   {new Date(log.start_timestamp).toLocaleDateString('en-GB')}<br />
                   {new Date(log.start_timestamp).toLocaleTimeString()}
+                </div>
+                <div>
+                  {log.call_type === 'phone_call' ? log.to_number || 'Unknown number' : 'Web call'}
                 </div>
                 <div>
                   {renderAudioPlayer(log.recording_url)}
@@ -282,8 +330,14 @@ export default function CallLogsPage() {
       </div>
 
       {isModalOpen && modalContent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+          onClick={closeModal}
+        >
+          <div 
+            className="bg-white p-6 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-xl font-bold mb-4">{modalContent.title}</h2>
             <div className="mb-4">{modalContent.content}</div>
             <button 

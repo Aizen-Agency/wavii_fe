@@ -14,6 +14,7 @@ import Modal from "@/components/ui/modal"
 import { Input } from "@/components/ui/input"
 import LoadingOverlay from "@/components/loadingOverlay"
 import { toast } from 'react-toastify'
+import axiosInstance from "@/utils/axios"
 
 const retellWebClient = new RetellWebClient();
 
@@ -188,26 +189,19 @@ export default function CreateAgentPage() {
     call_id?: string;
   }
 
-    // Register call using selected agent
-    async function registerCall(agentId: string): Promise<RegisterCallResponse> {
-        try {
-          const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/create-web-call", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ agent_id: agentId })
-          });
-          if (!response.ok) {
-            throw new Error(`Error: ${response.status}`);
-          }
-          const data: RegisterCallResponse = await response.json();
-          return data;
-        } catch (err) {
-          console.error(err);
-          throw new Error("Register call failed");
-        }
-      }
+  // Register call using selected agent
+  async function registerCall(agentId: string): Promise<RegisterCallResponse> {
+    try {
+      const response = await axiosInstance.post('/create-web-call', {
+        agent_id: agentId
+      });
+      return response.data;
+    } catch (err) {
+      console.error(err);
+      throw new Error("Register call failed");
+    }
+  }
+
   const toggleConversation = async () => {
     console.log(isCalling);
     if (!selectedAgent?.retell_agent_id) {

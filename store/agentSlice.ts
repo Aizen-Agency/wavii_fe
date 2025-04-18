@@ -1,6 +1,7 @@
 // app/store/agentSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios, { AxiosError } from 'axios';
+import axiosInstance from '@/utils/axios';
 
 interface Agent {
   id: number;
@@ -59,20 +60,17 @@ export const createAgent = createAsyncThunk(
   'agent/createAgent',
   async (agentData: any, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('access_token');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       delete agentData.id;
       agentData.retell_key = user.retell_key;
-      const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/agents', agentData, {
+      const response = await axiosInstance.post('/agents', agentData, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
       });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
-      handle403Error(axiosError);
       return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
     }
   }
@@ -82,16 +80,10 @@ export const fetchAgents = createAsyncThunk(
   'agent/fetchAgents',
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/agents', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await axiosInstance.get('/agents');
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
-      handle403Error(axiosError);
       return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
     }
   }
@@ -101,16 +93,10 @@ export const deleteAgent = createAsyncThunk(
   'agent/deleteAgent',
   async (id: number, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('access_token');
-      await axios.delete(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      await axiosInstance.delete(`/agents/${id}`);
       return id;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
-      handle403Error(axiosError);
       return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
     }
   }
@@ -120,17 +106,14 @@ export const updateAgent = createAsyncThunk(
   'agent/updateAgent',
   async (agentData: Agent, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await axios.patch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentData.id}`, agentData, {
+      const response = await axiosInstance.patch(`/agents/${agentData.id}`, agentData, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
       });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
-      handle403Error(axiosError);
       return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
     }
   }
@@ -140,16 +123,10 @@ export const fetchAgentById = createAsyncThunk(
   'agent/fetchAgentById',
   async (id: number, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await axiosInstance.get(`/agents/${id}`);
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
-      handle403Error(axiosError);
       return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
     }
   }
@@ -161,7 +138,7 @@ export const integrateCalendar = createAsyncThunk(
   async ({ agent_id, cal_api_key, event_type_id }: IntegrateCalendarParams, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agent_id}/integrate-calendar`, {
+      const response = await fetch(`http://localhost:8080/agents/${agent_id}/integrate-calendar`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -8,7 +8,7 @@ import { fetchPhoneNumbers } from "@/store/phoneNumberSlice" // Adjust the impor
 import { AppDispatch, RootState } from "@/store/store"
 import { useDispatch, useSelector } from "react-redux"
 import { useRouter } from "next/navigation"
-import axios from "axios"
+import axiosInstance from "@/utils/axios"
 import { useParams } from "next/navigation"
 import { fetchAgentById } from "@/store/agentSlice"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -57,7 +57,7 @@ export default function PhoneActivation() {
     const isCurrentlyInbound = phoneStatuses[phone_number_sid]?.inbound;
 
     try {
-      const response = await axios.patch('https://retell-demo-be-cfbda6d152df.herokuapp.com/update-phone-number', {
+      const response = await axiosInstance.patch('/update-phone-number', {
         phone_number: phoneNumber.phone_number,
         inbound_agent_id: isCurrentlyInbound ? null : agent?.retell_agent_id
       }, {
@@ -107,8 +107,8 @@ export default function PhoneActivation() {
       const isCurrentlyOutbound = phoneStatuses[phone_number_sid]?.outbound;
       const payload = isCurrentlyOutbound ? {} : { phone_number: phoneNumber.phone_number };
 
-      const response = await axios.put(
-        `https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${id}/outbound-phone`,
+      const response = await axiosInstance.put(
+        `/agents/${id}/outbound-phone`,
         payload,
         {
           headers: {
@@ -153,7 +153,7 @@ export default function PhoneActivation() {
 
   const checkIsInbound = async (phone_number: string) => {
     try {
-      const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${id}/check-phone-number/${phone_number}`, {
+      const response = await axiosInstance.get(`/agents/${id}/check-phone-number/${phone_number}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}` // Assuming JWT is stored in localStorage
         }
@@ -210,14 +210,10 @@ export default function PhoneActivation() {
     handleModalClose()
     
     try {
-      await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/create-phone-call', {
+      await axiosInstance.post('/create-phone-call', {
         to_number: to_number,
         agent_id: agent?.retell_agent_id,
         from_number: from_number
-      }, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
       });
       
       toast.success('Call initiated successfully!', {
@@ -240,15 +236,6 @@ export default function PhoneActivation() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
-      if (file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-        toast.error('Please upload an Excel file (.xlsx)', {
-          position: "top-right",
-          autoClose: 3000,
-          closeButton: false,
-          closeOnClick: true
-        })
-        return
-      }
       setSelectedFile(file)
     }
   }
@@ -261,9 +248,8 @@ export default function PhoneActivation() {
       formData.append('sheet', file)
       formData.append('from_number', from_number)
 
-      await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/create-batch-call', formData, {
+      await axiosInstance.post('/create-batch-call', formData, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'multipart/form-data'
         }
       })
@@ -398,11 +384,10 @@ export default function PhoneActivation() {
               ) : (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Upload Excel File</Label>
+                    <Label>Upload File</Label>
                     <div className="flex items-center space-x-2">
                       <Input
                         type="file"
-                        accept=".xlsx"
                         onChange={handleFileChange}
                       />
                     </div>

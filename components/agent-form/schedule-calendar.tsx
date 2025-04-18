@@ -163,23 +163,23 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
     })
   }
 
-  const handleEditDay = (dayName: string) => {
-    setSelectedDay(dayName)
-    const schedule = schedules?.data[0]
-    if (schedule) {
-      const daySchedules = schedule.availability.filter(avail => 
-        avail.days.some(d => d.toLowerCase() === dayName.toLowerCase())
-      )
+  // const handleEditDay = (dayName: string) => {
+  //   setSelectedDay(dayName)
+  //   const schedule = schedules?.data[0]
+  //   if (schedule) {
+  //     const daySchedules = schedule.availability.filter(avail => 
+  //       avail.days.some(d => d.toLowerCase() === dayName.toLowerCase())
+  //     )
       
-      setEditingSchedule({
-        days: [dayName],
-        slots: daySchedules.length > 0 
-          ? daySchedules.map(s => ({ startTime: s.startTime, endTime: s.endTime }))
-          : [{ startTime: "09:00", endTime: "17:00" }]
-      })
-    }
-    setIsEditModalOpen(true)
-  }
+  //     setEditingSchedule({
+  //       days: [dayName],
+  //       slots: daySchedules.length > 0 
+  //         ? daySchedules.map(s => ({ startTime: s.startTime, endTime: s.endTime }))
+  //         : [{ startTime: "09:00", endTime: "17:00" }]
+  //     })
+  //   }
+  //   setIsEditModalOpen(true)
+  // }
 
   const addTimeSlot = () => {
     setEditingSchedule(prev => ({

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Phone, Plus } from "lucide-react"
+import { Phone, Plus, X } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 import { fetchPhoneNumbers } from "@/store/phoneNumberSlice" // Adjust the import path as necessary
@@ -30,6 +30,7 @@ export default function PhoneActivation() {
   const [selectedPhoneNumber, setSelectedPhoneNumber] = useState("")
   const [isBatchCall, setIsBatchCall] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [dynamicVariables, setDynamicVariables] = useState<{ key: string; value: string }[]>([])
 
   useEffect(() => {
     const loadData = async () => {
@@ -197,12 +198,27 @@ export default function PhoneActivation() {
     }
   }, [phoneNumbers, id]);
 
+  const addDynamicVariable = () => {
+    setDynamicVariables([...dynamicVariables, { key: "", value: "" }])
+  }
+
+  const removeDynamicVariable = (index: number) => {
+    setDynamicVariables(dynamicVariables.filter((_, i) => i !== index))
+  }
+
+  const updateDynamicVariable = (index: number, field: 'key' | 'value', value: string) => {
+    const updatedVariables = [...dynamicVariables]
+    updatedVariables[index][field] = value
+    setDynamicVariables(updatedVariables)
+  }
+
   const handleModalClose = () => {
     setIsModalOpen(false)
     setToNumber("")
     setSelectedPhoneNumber("")
     setIsBatchCall(false)
     setSelectedFile(null)
+    setDynamicVariables([])
   }
 
   const startCall = async (from_number: string, to_number: string) => {
@@ -210,10 +226,19 @@ export default function PhoneActivation() {
     handleModalClose()
     
     try {
+      // Convert dynamic variables array to object
+      const variables = dynamicVariables.reduce((acc, { key, value }) => {
+        if (key && value) {
+          acc[key] = value
+        }
+        return acc
+      }, {} as Record<string, string>)
+
       await axiosInstance.post('/create-phone-call', {
         to_number: to_number,
         agent_id: agent?.retell_agent_id,
-        from_number: from_number
+        from_number: from_number,
+        variables: variables
       });
       
       toast.success('Call initiated successfully!', {
@@ -374,6 +399,45 @@ export default function PhoneActivation() {
                     value={toNumber}
                     onChange={(e) => setToNumber(e.target.value)}
                   />
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label>Dynamic Variables</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addDynamicVariable}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Variable
+                      </Button>
+                    </div>
+                    
+                    {dynamicVariables.map((variable, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          placeholder="Key"
+                          value={variable.key}
+                          onChange={(e) => updateDynamicVariable(index, 'key', e.target.value)}
+                        />
+                        <Input
+                          placeholder="Value"
+                          value={variable.value}
+                          onChange={(e) => updateDynamicVariable(index, 'value', e.target.value)}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeDynamicVariable(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
                   <Button
                     className="w-full"
                     onClick={() => startCall(selectedPhoneNumber, toNumber)}

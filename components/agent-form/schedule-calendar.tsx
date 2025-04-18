@@ -163,23 +163,23 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
     })
   }
 
-  // const handleEditDay = (dayName: string) => {
-  //   setSelectedDay(dayName)
-  //   const schedule = schedules?.data[0]
-  //   if (schedule) {
-  //     const daySchedules = schedule.availability.filter(avail => 
-  //       avail.days.some(d => d.toLowerCase() === dayName.toLowerCase())
-  //     )
+  const handleEditDay = (dayName: string) => {
+    setSelectedDay(dayName)
+    const schedule = schedules?.data[0]
+    if (schedule) {
+      const daySchedules = schedule.availability.filter(avail => 
+        avail.days.some(d => d.toLowerCase() === dayName.toLowerCase())
+      )
       
-  //     setEditingSchedule({
-  //       days: [dayName],
-  //       slots: daySchedules.length > 0 
-  //         ? daySchedules.map(s => ({ startTime: s.startTime, endTime: s.endTime }))
-  //         : [{ startTime: "09:00", endTime: "17:00" }]
-  //     })
-  //   }
-  //   setIsEditModalOpen(true)
-  // }
+      setEditingSchedule({
+        days: [dayName],
+        slots: daySchedules.length > 0 
+          ? daySchedules.map(s => ({ startTime: s.startTime, endTime: s.endTime }))
+          : [{ startTime: "09:00", endTime: "17:00" }]
+      })
+    }
+    setIsEditModalOpen(true)
+  }
 
   const addTimeSlot = () => {
     setEditingSchedule(prev => ({
@@ -331,26 +331,39 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
               >
                 <div className="flex justify-between items-center mb-1">
                   <div className="text-sm font-medium">{day}</div>
-                  {availabilityTimes.length > 0 && (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-48 p-2">
-                        <div className="text-xs font-medium mb-1">Available Times:</div>
-                        {availabilityTimes.map((time, i) => {
-                          const [start, end] = time.split(' - ')
-                          return (
-                            <div key={i} className="text-xs text-green-600 py-1">
-                              {formatTime(start)} - {formatTime(end)}
-                            </div>
-                          )
-                        })}
-                      </PopoverContent>
-                    </Popover>
-                  )}
+                  <div className="flex gap-1">
+                    {availabilityTimes.length > 0 && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-48 p-2">
+                          <div className="text-xs font-medium mb-1">Available Times:</div>
+                          {availabilityTimes.map((time, i) => {
+                            const [start, end] = time.split(' - ')
+                            return (
+                              <div key={i} className="text-xs text-green-600 py-1">
+                                {formatTime(start)} - {formatTime(end)}
+                              </div>
+                            )
+                          })}
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => handleEditDay(dayName)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                        <path d="m15 5 4 4"/>
+                      </svg>
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="space-y-1 mt-1">

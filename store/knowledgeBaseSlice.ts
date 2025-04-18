@@ -74,7 +74,7 @@ export const deleteKnowledgeBaseThunk = createAsyncThunk(
   async (knowledgeBaseId: number, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      await axios.delete(`http://localhost:8080/delete-knowledge-base/${knowledgeBaseId}`, {
+      await axios.delete(`https://retell-demo-be-cfbda6d152df.herokuapp.com/delete-knowledge-base/${knowledgeBaseId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -4,12 +4,7 @@ import { toast } from "react-toastify"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Plus, X, ChevronDown } from "lucide-react"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import { Plus, X} from "lucide-react"
 
 interface TimeSlot {
   startTime: string
@@ -194,7 +189,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const fetchDateAvailability = async (date: string) => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`http://localhost:8080/agents/${agentId}/date-availability/${date}`, {
+      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/date-availability/${date}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -212,7 +207,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const updateDateAvailability = async (date: string, timeSlots: { start: string, end: string }[]) => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`http://localhost:8080/agents/${agentId}/date-availability`, {
+      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/date-availability`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -236,7 +231,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const deleteDateAvailability = async (date: string) => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`http://localhost:8080/agents/${agentId}/date-availability/${date}`, {
+      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/date-availability/${date}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -385,16 +380,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
 
   const { daysInMonth, startingDay } = getDaysInMonth(currentDate)
 
-  const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(':')
-    const time = new Date()
-    time.setHours(parseInt(hours), parseInt(minutes))
-    return time.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    })
-  }
+
 
   const formatBookingTime = (startTime: string) => {
     const date = new Date(startTime)

@@ -77,9 +77,36 @@ interface ScheduleCalendarProps {
   agentId: string
 }
 
+interface DateAvailabilityResponse {
+  date: string
+  timeSlots: {
+    start: string
+    end: string
+  }[]
+}
+
+interface DateAvailabilityUpdateResponse {
+  message: string
+  date: string
+  timeSlots: {
+    start: string
+    end: string
+  }[]
+}
+
+interface DateAvailabilityDeleteResponse {
+  message: string
+  date: string
+}
+
 const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const shortDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+const getFullDayName = (shortDay: string) => {
+  const index = shortDays.indexOf(shortDay)
+  return index !== -1 ? days[index] : shortDay
+}
 
 export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const [schedules, setSchedules] = useState<ScheduleResponse | null>(null)
@@ -87,6 +114,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [editingSchedule, setEditingSchedule] = useState<DaySchedule>({
     days: [],
     slots: [{ startTime: "09:00", endTime: "17:00" }]
@@ -163,20 +191,101 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
     })
   }
 
-  const handleEditDay = (dayName: string) => {
-    setSelectedDay(dayName)
-    const schedule = schedules?.data[0]
-    if (schedule) {
-      const daySchedules = schedule.availability.filter(avail => 
-        avail.days.some(d => d.toLowerCase() === dayName.toLowerCase())
-      )
-      
-      setEditingSchedule({
-        days: [dayName],
-        slots: daySchedules.length > 0 
-          ? daySchedules.map(s => ({ startTime: s.startTime, endTime: s.endTime }))
-          : [{ startTime: "09:00", endTime: "17:00" }]
+  const fetchDateAvailability = async (date: string) => {
+    try {
+      const token = localStorage.getItem('access_token')
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/date-availability/${date}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       })
+      if (!response.ok) throw new Error('Failed to fetch date availability')
+      const data: DateAvailabilityResponse = await response.json()
+      return data
+    } catch (error) {
+      console.error('Failed to fetch date availability', error)
+      toast.error('Failed to fetch date availability')
+      return null
+    }
+  }
+
+  const updateDateAvailability = async (date: string, timeSlots: { start: string, end: string }[]) => {
+    try {
+      const token = localStorage.getItem('access_token')
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/date-availability`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          date,
+          timeSlots
+        })
+      })
+      if (!response.ok) throw new Error('Failed to update date availability')
+      const data: DateAvailabilityUpdateResponse = await response.json()
+      return data
+    } catch (error) {
+      console.error('Failed to update date availability', error)
+      toast.error('Failed to update date availability')
+      return null
+    }
+  }
+
+  const deleteDateAvailability = async (date: string) => {
+    try {
+      const token = localStorage.getItem('access_token')
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/date-availability/${date}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (!response.ok) throw new Error('Failed to delete date availability')
+      const data: DateAvailabilityDeleteResponse = await response.json()
+      return data
+    } catch (error) {
+      console.error('Failed to delete date availability', error)
+      toast.error('Failed to delete date availability')
+      return null
+    }
+  }
+
+  const handleEditDay = async (dayName: string, date?: Date) => {
+    setSelectedDay(dayName)
+    if (date) {
+      const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+      setSelectedDate(formattedDate)
+      const availability = await fetchDateAvailability(formattedDate)
+      if (availability) {
+        setEditingSchedule({
+          days: [dayName],
+          slots: availability.timeSlots.map(slot => ({
+            startTime: new Date(slot.start).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+            endTime: new Date(slot.end).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })
+          }))
+        })
+      } else {
+        setEditingSchedule({
+          days: [dayName],
+          slots: [{ startTime: "09:00", endTime: "17:00" }]
+        })
+      }
+    } else {
+      const schedule = schedules?.data[0]
+      if (schedule) {
+        const daySchedules = schedule.availability.filter(avail => 
+          avail.days.some(d => d.toLowerCase() === dayName.toLowerCase())
+        )
+        
+        setEditingSchedule({
+          days: [dayName],
+          slots: daySchedules.length > 0 
+            ? daySchedules.map(s => ({ startTime: s.startTime, endTime: s.endTime }))
+            : [{ startTime: "09:00", endTime: "17:00" }]
+        })
+      }
     }
     setIsEditModalOpen(true)
   }
@@ -206,56 +315,71 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
 
   const saveSchedule = async () => {
     try {
-      const token = localStorage.getItem('access_token')
-      const schedule = schedules?.data[0]
-      if (!schedule) return
+      if (selectedDate) {
+        const timeSlots = editingSchedule.slots.map(slot => ({
+          start: slot.startTime,
+          end: slot.endTime
+        }))
+        const result = await updateDateAvailability(selectedDate, timeSlots)
+        if (result) {
+          toast.success('Date-specific availability updated successfully')
+        }
+      } else {
+        const token = localStorage.getItem('access_token')
+        const schedule = schedules?.data[0]
+        if (!schedule) return
 
-      // Keep existing schedules for other days
-      const updatedAvailability = [...schedule.availability]
-
-      // Find and remove any existing schedules for the selected day
-      const selectedDayIndex = updatedAvailability.findIndex(avail => 
-        avail.days.some(d => d.toLowerCase() === selectedDay?.toLowerCase())
-      )
-
-      // If found, remove all entries for this day
-      while (selectedDayIndex !== -1) {
-        updatedAvailability.splice(selectedDayIndex, 1)
-        const nextIndex = updatedAvailability.findIndex(avail => 
+        const updatedAvailability = [...schedule.availability]
+        const selectedDayIndex = updatedAvailability.findIndex(avail => 
           avail.days.some(d => d.toLowerCase() === selectedDay?.toLowerCase())
         )
-        if (nextIndex === -1) break
+
+        while (selectedDayIndex !== -1) {
+          updatedAvailability.splice(selectedDayIndex, 1)
+          const nextIndex = updatedAvailability.findIndex(avail => 
+            avail.days.some(d => d.toLowerCase() === selectedDay?.toLowerCase())
+          )
+          if (nextIndex === -1) break
+        }
+
+        editingSchedule.slots.forEach(slot => {
+          updatedAvailability.push({
+            days: [selectedDay!],
+            startTime: slot.startTime,
+            endTime: slot.endTime
+          })
+        })
+
+        const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/schedules/${schedule.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ...schedule,
+            availability: updatedAvailability
+          })
+        })
+
+        if (!response.ok) throw new Error('Failed to update schedule')
+        await fetchSchedules()
+        toast.success('Schedule updated successfully')
       }
-
-      // Add new time slots for the selected day
-      editingSchedule.slots.forEach(slot => {
-        updatedAvailability.push({
-          days: [selectedDay!],
-          startTime: slot.startTime,
-          endTime: slot.endTime
-        })
-      })
-
-      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/schedules/${schedule.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...schedule,
-          availability: updatedAvailability
-        })
-      })
-
-      if (!response.ok) throw new Error('Failed to update schedule')
-      
-      await fetchSchedules()
       setIsEditModalOpen(false)
-      toast.success('Schedule updated successfully')
     } catch (error) {
       console.error('Failed to update schedule', error)
       toast.error('Failed to update schedule')
+    }
+  }
+
+  const handleDeleteDateAvailability = async () => {
+    if (selectedDate) {
+      const result = await deleteDateAvailability(selectedDate)
+      if (result) {
+        toast.success('Date-specific availability deleted successfully')
+        setIsEditModalOpen(false)
+      }
     }
   }
 
@@ -306,8 +430,19 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
 
         <div className="grid grid-cols-7 gap-1">
           {shortDays.map(day => (
-            <div key={day} className="text-center font-medium text-gray-500 py-2">
+            <div key={day} className="text-center font-medium text-gray-500 py-2 flex items-center justify-center gap-2">
               {day}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => handleEditDay(getFullDayName(day))}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                  <path d="m15 5 4 4"/>
+                </svg>
+              </Button>
             </div>
           ))}
 
@@ -332,31 +467,11 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
                 <div className="flex justify-between items-center mb-1">
                   <div className="text-sm font-medium">{day}</div>
                   <div className="flex gap-1">
-                    {availabilityTimes.length > 0 && (
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                            <ChevronDown className="h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-48 p-2">
-                          <div className="text-xs font-medium mb-1">Available Times:</div>
-                          {availabilityTimes.map((time, i) => {
-                            const [start, end] = time.split(' - ')
-                            return (
-                              <div key={i} className="text-xs text-green-600 py-1">
-                                {formatTime(start)} - {formatTime(end)}
-                              </div>
-                            )
-                          })}
-                        </PopoverContent>
-                      </Popover>
-                    )}
                     <Button
                       variant="ghost"
                       size="sm"
                       className="h-6 w-6 p-0"
-                      onClick={() => handleEditDay(dayName)}
+                      onClick={() => handleEditDay(dayName, date)}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
@@ -391,7 +506,9 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit {selectedDay} Schedule</DialogTitle>
+            <DialogTitle>
+              {selectedDate ? `Edit ${selectedDate} Schedule` : `Edit ${selectedDay} Schedule`}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             {editingSchedule.slots.map((slot, index) => (
@@ -429,6 +546,11 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
             </Button>
 
             <div className="flex justify-end gap-2 mt-4">
+              {selectedDate && (
+                <Button variant="destructive" onClick={handleDeleteDateAvailability}>
+                  Delete
+                </Button>
+              )}
               <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
                 Cancel
               </Button>

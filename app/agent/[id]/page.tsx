@@ -341,6 +341,9 @@ export default function CreateAgentPage() {
               <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/edit`)}>
                 <Pencil className="w-4 h-4" /> Edit Agent
               </Button>
+              <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/dashboard`)}>
+                <BarChart2 className="w-4 h-4" /> Dashboard
+              </Button>
               <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/analytics`)}>
                 <BarChart2 className="w-4 h-4" /> View Analytics
               </Button>

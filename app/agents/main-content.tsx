@@ -100,15 +100,27 @@ export function MainContent() {
               <p className="text-gray-500">
                 Created At: {new Date(agent.created_at).toLocaleDateString("en-GB")}
               </p>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(agent.id);
-                }}
-                className="absolute bottom-2 right-2 p-1 text-red-600 hover:text-red-800"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              <div className="absolute bottom-2 right-2 flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/agent/${agent.id}/dashboard`);
+                  }}
+                >
+                  Dashboard
+                </Button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(agent.id);
+                  }}
+                  className="p-1 text-red-600 hover:text-red-800"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           ))}
         </div>

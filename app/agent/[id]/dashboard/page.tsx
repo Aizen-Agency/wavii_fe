@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Phone, Calendar, DollarSign, Clock, AlertCircle } from "lucide-react"
+import { ArrowLeft, Phone, Calendar, Clock, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Card } from "@/components/ui/card"
@@ -53,9 +53,14 @@ export default function AgentDashboard() {
       const response = await axiosInstance.get(`/agents/${agentId}/stats?${params.toString()}`);
       setStats(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to fetch agent statistics");
-      toast.error(err.response?.data?.error || "Failed to fetch agent statistics");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+        toast.error(err.message);
+      } else {
+        setError("An unknown error occurred");
+        toast.error("An unknown error occurred");
+      }
     } finally {
       setLoading(false);
     }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Plus, X} from "lucide-react"
+import PermissionWrapper from "../PermissionWrapper"
 
 interface TimeSlot {
   startTime: string
@@ -118,7 +119,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const fetchBookings = async () => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/bookings`, {
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/bookings`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -142,7 +143,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const fetchSchedules = async () => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/schedules`, {
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/schedules`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -189,7 +190,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const fetchDateAvailability = async (date: string) => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/date-availability/${date}`, {
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/date-availability/${date}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -207,7 +208,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const updateDateAvailability = async (date: string, timeSlots: { start: string, end: string }[]) => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/date-availability`, {
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/date-availability`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -231,7 +232,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const deleteDateAvailability = async (date: string) => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/date-availability/${date}`, {
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/date-availability/${date}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -345,7 +346,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
           })
         })
 
-        const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/schedules/${schedule.id}`, {
+        const response = await fetch(`http://localhost:8080/agents/${agentId}/schedules/${schedule.id}`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -418,6 +419,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
           {shortDays.map(day => (
             <div key={day} className="text-center font-medium text-gray-500 py-2 flex items-center justify-center gap-2">
               {day}
+              <PermissionWrapper componentName="CreateSchedule">
               <Button
                 variant="ghost"
                 size="sm"
@@ -429,6 +431,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
                   <path d="m15 5 4 4"/>
                 </svg>
               </Button>
+              </PermissionWrapper>
             </div>
           ))}
 
@@ -453,6 +456,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
                 <div className="flex justify-between items-center mb-1">
                   <div className="text-sm font-medium">{day}</div>
                   <div className="flex gap-1">
+                    <PermissionWrapper componentName="CreateSchedule">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -464,6 +468,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
                         <path d="m15 5 4 4"/>
                       </svg>
                     </Button>
+                    </PermissionWrapper>
                   </div>
                 </div>
                 

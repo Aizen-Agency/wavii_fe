@@ -6,6 +6,8 @@ import { fetchKnowledgeBases, uploadFilesThunk, deleteKnowledgeBaseThunk } from 
 import { fetchAgentById } from '@/store/agentSlice'
 import { RootState } from '@/store/store'
 import { AppDispatch } from '@/store/store'
+import PermissionWrapper from "../PermissionWrapper"
+import { usePermissionContext } from '@/contexts/PermissionContext'
 
 interface KnowledgeBase {
   knowledge_base_id: number;
@@ -30,13 +32,18 @@ interface KnowledgeBaseProps {
 
 export function KnowledgeBase({ formData }: KnowledgeBaseProps) {
   const dispatch = useDispatch<AppDispatch>()
+  const { checkPermission } = usePermissionContext();
   const { knowledgeBases, status, error } = useSelector((state: RootState) => state.knowledgeBase)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   useEffect(() => {
-    dispatch(fetchKnowledgeBases(formData.id)) // Replace with actual agent ID
-    dispatch(fetchAgentById(formData.id)) // Replace with actual agent ID
-  }, [dispatch])
+    // Check permission before fetching knowledge bases
+    const canViewKnowledgeBases = checkPermission(10, 2);
+    if (canViewKnowledgeBases) {
+      dispatch(fetchKnowledgeBases(formData.id))
+      dispatch(fetchAgentById(formData.id))
+    }
+  }, [dispatch, checkPermission])
 
 //   useEffect(() => {
 //     if (status === 'succeeded') {
@@ -53,6 +60,8 @@ export function KnowledgeBase({ formData }: KnowledgeBaseProps) {
   };
 
   const handleNextClick = () => {
+    // Check permission before uploading files
+
     if (selectedFiles.length > 0) {
       dispatch(uploadFilesThunk({ agentId: formData.id, files: selectedFiles }));
     } else {
@@ -61,12 +70,15 @@ export function KnowledgeBase({ formData }: KnowledgeBaseProps) {
   };
 
   const handleDeleteClick = (knowledgeBaseId: number) => {
+    // Check permission before deleting
+
     dispatch(deleteKnowledgeBaseThunk(knowledgeBaseId));
   };
 
   return (
     <div className="space-y-6">
       <div className="border-2 border-dashed rounded-lg p-8 text-center">
+        <PermissionWrapper componentName="CreateKnowledgeBase">
         <input
           type="file"
           multiple
@@ -80,11 +92,12 @@ export function KnowledgeBase({ formData }: KnowledgeBaseProps) {
             <Upload className="w-4 h-4" /> Upload files
           </Button>
         </label>
+        </PermissionWrapper>
         {/* <Button className="ml-4 bg-gray-200 hover:bg-gray-300 text-gray-700" onClick={handleNextClick}>
           Next
         </Button> */}
       </div>
-
+    <PermissionWrapper componentName="KnowledgeBase">
       <div>
         <h3 className="font-medium mb-2">Uploaded Files</h3>
         {status === 'loading' && <p className="text-gray-500">Loading...</p>}
@@ -96,6 +109,7 @@ export function KnowledgeBase({ formData }: KnowledgeBaseProps) {
           <ul>
             {knowledgeBases.map((kb: KnowledgeBase) => (
               <li key={kb.knowledge_base_id} className="flex items-center">
+                <PermissionWrapper componentName="DeleteKnowledgeBase">
                 <button
                   onClick={() => handleDeleteClick(kb.knowledge_base_id)}
                   className="text-red-500 hover:text-red-700 mr-2"
@@ -103,6 +117,7 @@ export function KnowledgeBase({ formData }: KnowledgeBaseProps) {
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
+                </PermissionWrapper>
                 <ul>
                   {(kb.knowledge_base_sources || []).map((source: KnowledgeBase['knowledge_base_sources'][number]) => (
                     <li key={source.filename}>
@@ -118,6 +133,7 @@ export function KnowledgeBase({ formData }: KnowledgeBaseProps) {
           </ul>
         )}
       </div>
+      </PermissionWrapper>
 
       {/* <div>
         <h3 className="font-medium mb-2">Agent Details</h3>

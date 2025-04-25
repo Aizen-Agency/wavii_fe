@@ -13,6 +13,7 @@ import { fetchAgents, fetchAgentById } from "@/store/agentSlice"
 import { AppDispatch, RootState } from "@/store/store"
 import LoadingOverlay from "@/components/loadingOverlay"
 import { fetchTwilioAccounts, setSelectedAccount } from "@/store/twilioSlice"
+import PermissionWrapper from "@/components/PermissionWrapper"
 
 export default function PhoneNumbersPage() {
   const [isAddPhoneNumberOpen, setIsAddPhoneNumberOpen] = useState(false)
@@ -78,6 +79,7 @@ export default function PhoneNumbersPage() {
         </div>
 
         <div className="flex flex-wrap gap-4">
+          <PermissionWrapper componentName="CreateNumbers">
           <Button
             className="bg-[#9F7AEA] hover:bg-[#9F7AEA]/90 text-white gap-2"
             onClick={() => setIsAddTwilioNumberOpen(true)}
@@ -86,6 +88,7 @@ export default function PhoneNumbersPage() {
             <Plus className="h-4 w-4" />
             Add Twilio Number
           </Button>
+          </PermissionWrapper>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -149,6 +152,7 @@ export default function PhoneNumbersPage() {
                     )}
                   </div>
                   <div>
+                    <PermissionWrapper componentName="DeleteNumbers">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -157,6 +161,7 @@ export default function PhoneNumbersPage() {
                     >
                       Delete
                     </Button>
+                    </PermissionWrapper>  
                   </div>
                 </div>
               ))}

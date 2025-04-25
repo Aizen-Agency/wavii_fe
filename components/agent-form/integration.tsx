@@ -6,6 +6,8 @@ import { useDispatch } from "react-redux"
 import { useEffect } from "react"
 import { AppDispatch } from "@/store/store"
 import { integrateCalendar as integrateCalendarThunk, fetchAgentById } from "@/store/agentSlice"
+import PermissionWrapper from "../PermissionWrapper"
+import { usePermissionContext } from "@/contexts/PermissionContext"
 
 interface FormData {
   id: number
@@ -21,8 +23,11 @@ interface IntegrationProps {
 
 export function Integration({ formData, updateFormData }: IntegrationProps) {
   const dispatch = useDispatch<AppDispatch>()
+  const { checkPermission } = usePermissionContext();
+  let canEditCalendar;
 
   useEffect(() => {
+    canEditCalendar = checkPermission(12, 4);
     if (formData.id) {
       dispatch(fetchAgentById(formData.id))
     }
@@ -72,6 +77,7 @@ export function Integration({ formData, updateFormData }: IntegrationProps) {
         <Input
           placeholder="Enter your calendar API key"
           value={formData.cal_key} 
+          disabled={!canEditCalendar}
           onChange={(e) => updateFormData({ cal_key: e.target.value })}
         />
       </div>
@@ -81,10 +87,12 @@ export function Integration({ formData, updateFormData }: IntegrationProps) {
         <Input
           placeholder="Enter your calendar event ID"
           value={formData.cal_event_id}
+          disabled={!canEditCalendar}
           onChange={(e) => updateFormData({ cal_event_id: e.target.value })}
         />
       </div>
 
+        <PermissionWrapper componentName="EditCalendar">
       <Button
         variant="outline"
         className="w-full justify-start gap-2"
@@ -92,6 +100,7 @@ export function Integration({ formData, updateFormData }: IntegrationProps) {
       >
         Integrate Calendar
       </Button>
+      </PermissionWrapper>
     </div>
   )
 }

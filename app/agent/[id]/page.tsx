@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import LoadingOverlay from "@/components/loadingOverlay"
 import { toast } from 'react-toastify'
 import axiosInstance from "@/utils/axios"
+import PermissionWrapper from "@/components/PermissionWrapper"
 
 const retellWebClient = new RetellWebClient();
 
@@ -259,7 +260,8 @@ export default function CreateAgentPage() {
               router.push(`/agents`);
           }}>
           <div className="flex justify-end">
-            <button
+           <PermissionWrapper componentName="EditAgent">
+           <button
               className="text-gray-500 hover:text-gray-700 p-2"
               onClick={() => router.push(`/agents`)}
             >
@@ -278,6 +280,7 @@ export default function CreateAgentPage() {
                 />
               </svg>
             </button>
+            </PermissionWrapper>
           </div>
           <h2 className="text-xl font-bold mb-4">Enter Agent Name</h2>
           
@@ -338,24 +341,34 @@ export default function CreateAgentPage() {
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-4 justify-center">
-              <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/edit`)}>
-                <Pencil className="w-4 h-4" /> Edit Agent
+              <PermissionWrapper componentName="Agent">
+               <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/edit`)}>
+                <Pencil className="w-4 h-4" /> Agent Details
               </Button>
+              </PermissionWrapper>
+              <PermissionWrapper componentName="Dashboard">
               <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/dashboard`)}>
                 <BarChart2 className="w-4 h-4" /> Dashboard
               </Button>
+              </PermissionWrapper>
               <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/analytics`)}>
                 <BarChart2 className="w-4 h-4" /> View Analytics
               </Button>
+              <PermissionWrapper componentName="Schedule">
               <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/calendar`)}>
                 <Calendar className="w-4 h-4" /> Calendar
               </Button>
+              </PermissionWrapper>
+              <PermissionWrapper componentName="CallLogs">
               <Button variant="outline" className="gap-2" onClick={() => router.push(`/agent/${agentId}/call-logs`)}>
                 <PhoneCall className="w-4 h-4" /> Call Logs
               </Button>
+              </PermissionWrapper>
+              <PermissionWrapper componentName="Numbers">
               <Button className="gap-2 bg-black hover:bg-black/90" onClick={() => router.push(`/agent/${agentId}/phone`)}>
                 <Phone className="w-4 h-4" /> Phone
               </Button>
+              </PermissionWrapper>
             </div>
           </Card>
 
@@ -405,7 +418,9 @@ export default function CreateAgentPage() {
                 </div>
               </div>
 
-              <div className="space-y-1">
+             
+             <PermissionWrapper componentName="Voice">
+             <div className="space-y-1">
                 <div className="text-gray-500">Voice</div>
                 <div className="flex items-center justify-between">
                   <select
@@ -421,6 +436,7 @@ export default function CreateAgentPage() {
                   </select>
                 </div>
               </div>
+              </PermissionWrapper>
 
               <div className="space-y-1">
                 <div className="text-gray-500">Accent</div>

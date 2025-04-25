@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 import LoadingOverlay from "@/components/loadingOverlay"
+import PermissionWrapper from "@/components/PermissionWrapper"
 
 interface TwilioAccount {
   id: number;
@@ -118,6 +119,7 @@ export default function TwilioAccounts() {
         <h2 className="text-2xl font-bold">Twilio Accounts</h2>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
+            <PermissionWrapper componentName="CreateTwilio">
             <Button
               onClick={() => {
                 resetForm()
@@ -127,6 +129,7 @@ export default function TwilioAccounts() {
               <Plus className="h-4 w-4 mr-2" />
               Add Twilio Account
             </Button>
+            </PermissionWrapper>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -211,6 +214,7 @@ export default function TwilioAccounts() {
             </CardHeader>
             <CardContent>
               <div className="flex justify-end space-x-2">
+                <PermissionWrapper componentName="EditTwilio">
                 <Button
                   variant="outline"
                   size="icon"
@@ -218,6 +222,8 @@ export default function TwilioAccounts() {
                 >
                   <Pencil className="h-4 w-4" />
                 </Button>
+                </PermissionWrapper>
+                <PermissionWrapper componentName="DeleteTwilio">
                 <Button
                   variant="outline"
                   size="icon"
@@ -226,6 +232,7 @@ export default function TwilioAccounts() {
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
+                </PermissionWrapper>
               </div>
             </CardContent>
           </Card>

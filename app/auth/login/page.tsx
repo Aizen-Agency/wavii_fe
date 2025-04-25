@@ -9,6 +9,7 @@ import { login, fetchUserData } from "@/store/authSlice"; // Adjust the path as 
 import { RootState, AppDispatch } from "@/store/store"; // Adjust the path as necessary
 import LoadingOverlay from "@/components/loadingOverlay"; // Import LoadingOverlay
 import { toast } from 'react-toastify'; // Import toast for popups
+import { permissionService } from "@/services/permissionService";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -23,6 +24,15 @@ export default function LoginPage() {
     if (token) {
       localStorage.setItem('access_token', token);
       dispatch(fetchUserData(token));
+      // Fetch and store permissions after successful login
+      permissionService.fetchUserPermissions()
+        .then(permissions => {
+          permissionService.storePermissions(permissions);
+        })
+        .catch(error => {
+          console.error('Error fetching permissions:', error);
+          toast.error('Failed to fetch user permissions');
+        });
     }
   }, [token, dispatch]);
 

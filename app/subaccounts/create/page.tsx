@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import PermissionWrapper from "@/components/PermissionWrapper"
 
 export default function CreateSubAccountPage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -57,10 +58,8 @@ export default function CreateSubAccountPage() {
       }
 
       await dispatch(createSubAccount({
-        ...formData,
-        available_credits: credits,
-        color_scheme: colorScheme,
-        logo_url: logoUrl,
+        name: formData.company_name,
+        description: formData.company_name,
       }))
     } catch (error) {
       console.error('Error creating subaccount:', error)
@@ -120,7 +119,7 @@ export default function CreateSubAccountPage() {
             </svg>
             <span>Create Subaccounts</span>
           </Link>
-
+          <PermissionWrapper componentName="Numbers">
           <Link href="/phone-numbers" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-muted">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
@@ -133,6 +132,7 @@ export default function CreateSubAccountPage() {
             </svg>
             <span>Phone Numbers</span>
           </Link>
+          </PermissionWrapper>
 
           <Link href="/settings" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-muted">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -175,157 +175,6 @@ export default function CreateSubAccountPage() {
             </Button>
           </div>
 
-          <Card className="p-8">
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold">Create New Sub Account</h1>
-              <p className="text-muted-foreground">Set up a new sub account with custom settings.</p>
-            </div>
-
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-8">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Admin Email</Label>
-                    <Input 
-                      id="email" 
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="admin@example.com" 
-                      type="email" 
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Admin Password</Label>
-                    <Input 
-                      id="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="Enter password" 
-                      type="password" 
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Sub Account Logo</Label>
-                  <div className="border border-dashed rounded-md flex flex-col items-center justify-center p-12 text-center">
-                    <label className="cursor-pointer">
-                      <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                      <p className="text-sm text-muted-foreground">Click to upload logo</p>
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="color-scheme">Color Scheme</Label>
-                  <div className="flex items-center gap-3">
-                    <div className="h-6 w-6 rounded-full border" style={{ backgroundColor: colorScheme }} />
-                    <Input
-                      id="color-scheme"
-                      value={colorScheme}
-                      onChange={(e) => setColorScheme(e.target.value)}
-                      className="w-32"
-                    />
-                    <div className="w-6 h-6 rounded-full border flex items-center justify-center">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M12 8V16"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M8 12H16"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="company-name">Company Name</Label>
-                  <Input 
-                    id="company-name" 
-                    value={formData.company_name}
-                    onChange={handleInputChange}
-                    placeholder="Enter company name" 
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="login-heading">Login Page Heading</Label>
-                  <Input 
-                    id="login-heading" 
-                    value={formData.login_heading}
-                    onChange={handleInputChange}
-                    defaultValue="Welcome Back" 
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="login-subheading">Login Page Subheading</Label>
-                  <Input 
-                    id="login-subheading" 
-                    value={formData.login_subheading}
-                    onChange={handleInputChange}
-                    defaultValue="Sign in to continue to your account" 
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Assign Agents</Label>
-                  {/* This would typically be a multi-select component */}
-                  <div className="h-10 rounded-md border bg-background px-3 py-2 text-sm">
-                    {/* Placeholder for agent selection UI */}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="assign-credits">Assign Credits</Label>
-                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="assign-credits"
-                      type="number"
-                      min="0"
-                      max="1000"
-                      value={credits}
-                      onChange={(e) => setCredits(Number.parseInt(e.target.value) || 0)}
-                    />
-                    <span className="text-sm text-muted-foreground">/ 1000 credits available</span>
-                  </div>
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  Create Sub Account
-                </Button>
-              </div>
-            </form>
-          </Card>
         </div>
       </div>
     </div>

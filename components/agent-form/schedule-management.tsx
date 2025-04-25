@@ -89,7 +89,7 @@ export function ScheduleManagement({ agentId }: ScheduleManagementProps) {
   const fetchSchedules = async () => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/schedules`, {
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/schedules`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -108,8 +108,8 @@ export function ScheduleManagement({ agentId }: ScheduleManagementProps) {
     try {
       const token = localStorage.getItem('access_token')
       const url = isEditing && currentSchedule
-        ? `https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/schedules/${currentSchedule.id}`
-        : `https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/schedules`
+        ? `http://localhost:8080/agents/${agentId}/schedules/${currentSchedule.id}`
+        : `http://localhost:8080/agents/${agentId}/schedules`
 
       const response = await fetch(url, {
         method: isEditing ? 'PATCH' : 'POST',
@@ -136,7 +136,7 @@ export function ScheduleManagement({ agentId }: ScheduleManagementProps) {
     
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agents/${agentId}/schedules/${scheduleId}`, {
+      const response = await fetch(`http://localhost:8080/agents/${agentId}/schedules/${scheduleId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

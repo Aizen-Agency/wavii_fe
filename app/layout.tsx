@@ -8,6 +8,7 @@ import store from '../store/store'
 import { ToastContainer } from 'react-toastify';
 const inter = Inter({ subsets: ["latin"] })
 import 'react-toastify/dist/ReactToastify.css';
+import { PermissionProvider } from '@/contexts/PermissionContext';
 
 // export const metadata: Metadata = {
 //   title: "Wavii Dashboard",
@@ -22,10 +23,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Provider store={store}>
-          {children}
-          <ToastContainer />
-        </Provider>
+        <PermissionProvider>
+          <Provider store={store}>
+            {children}
+            <ToastContainer />
+          </Provider>
+        </PermissionProvider>
       </body>
     </html>
   )

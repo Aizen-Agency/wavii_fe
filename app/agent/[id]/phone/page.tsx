@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import PermissionWrapper from "@/components/PermissionWrapper"
 
 export default function PhoneActivation() {
   const { id } = useParams()
@@ -335,6 +336,7 @@ export default function PhoneActivation() {
                   <div className="flex justify-center items-center space-x-6">
                     {phoneStatuses[phone.phone_number_sid]?.outbound && (
                       <div className="flex justify-center items-center">
+                        <PermissionWrapper componentName="CreateCall">
                         <Button
                           variant="outline"
                           size="sm"
@@ -345,19 +347,24 @@ export default function PhoneActivation() {
                         >
                           Call
                         </Button>
+                        </PermissionWrapper>
                       </div>
                     )}
                     <div className="flex justify-center items-center w-16">
+                      <PermissionWrapper componentName="EditNumbers">
                       <Switch
                         checked={phoneStatuses[phone.phone_number_sid]?.inbound || false}
                         onCheckedChange={() => toggleInbound(phone.phone_number_sid)}
                       />
+                      </PermissionWrapper>
                     </div>
                     <div className="flex justify-center items-center w-16">
+                      <PermissionWrapper componentName="EditNumbers">
                       <Switch
                         checked={phoneStatuses[phone.phone_number_sid]?.outbound || false}
                         onCheckedChange={() => toggleOutbound(phone.phone_number_sid)}
                       />
+                      </PermissionWrapper>
                     </div>
                   </div>
                 </div>

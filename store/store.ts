@@ -7,6 +7,7 @@ import knowledgeBaseReducer from './knowledgeBaseSlice';
 import callLogReducer from './callLogSlice';
 import phoneNumberReducer from './phoneNumberSlice';
 import twilioReducer from './twilioSlice';
+import rbacReducer from './rbacSlice';
 
 const store = configureStore({
   reducer: {
@@ -17,10 +18,10 @@ const store = configureStore({
     callLogs: callLogReducer,
     phoneNumbers: phoneNumberReducer,
     twilio: twilioReducer,
+    rbac: rbacReducer,
   },
 });
 
-// Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 

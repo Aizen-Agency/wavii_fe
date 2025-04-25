@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { fetchAgents } from "@/store/agentSlice"
 import { AppDispatch, RootState } from "@/store/store"
 import { useRouter } from "next/navigation"
-
+import PermissionWrapper from "@/components/PermissionWrapper"
 const steps = [
   { id: 1, name: "Agent Basics" },
   { id: 2, name: "Personality" },

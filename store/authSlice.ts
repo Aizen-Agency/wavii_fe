@@ -4,7 +4,7 @@ import axios from 'axios';
 export const login = createAsyncThunk(
   'auth/login',
   async ({ email, password }: { email: string; password: string }) => {
-    const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/login', {
+    const response = await axios.post('http://localhost:8080/login', {
       email,
       password,
     });
@@ -15,7 +15,7 @@ export const login = createAsyncThunk(
 export const fetchUserData = createAsyncThunk(
   'auth/fetchUserData',
   async (token: string) => {
-    const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/user', {
+    const response = await axios.get('http://localhost:8080/user', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -27,7 +27,7 @@ export const fetchUserData = createAsyncThunk(
 export const register = createAsyncThunk(
   'auth/register',
   async ({ username, password, email, company_name }: { username: string; password: string; email: string; company_name: string }) => {
-    const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/register', {
+    const response = await axios.post('http://localhost:8080/register', {
       username,
       password,
       email,
@@ -41,7 +41,7 @@ export const updateUser = createAsyncThunk(
   'auth/updateUser',
   async ({ userData }: {  userData: any }) => {
     const token = localStorage.getItem('access_token');
-    const response = await axios.patch('https://retell-demo-be-cfbda6d152df.herokuapp.com/user', userData, {
+    const response = await axios.patch('http://localhost:8080/user', userData, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export const uploadLogo = createAsyncThunk(
     const formData = new FormData();
     formData.append('logo', file);
 
-    const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/upload-logo', 
+    const response = await axios.post('http://localhost:8080/upload-logo', 
       formData,
       {
         headers: {
@@ -87,35 +87,17 @@ export const uploadLogo = createAsyncThunk(
 export const createSubAccount = createAsyncThunk(
   'auth/createSubAccount',
   async ({
-    email,
-    password,
-    company_name,
-    available_credits,
-    color_scheme,
-    logo_url,
-    login_heading,
-    login_subheading
+    name,
+    description,
   }: {
-    email: string;
-    password: string;
-    company_name: string;
-    available_credits: number;
-    color_scheme: string;
-    logo_url?: string;
-    login_heading: string;
-    login_subheading: string;
+    name: string;
+    description: string;
   }) => {
     const token = localStorage.getItem('access_token');
-    const response = await axios.post('https://retell-demo-be-cfbda6d152df.herokuapp.com/subaccounts', 
+    const response = await axios.post('http://localhost:8080/subaccounts', 
       {
-        email,
-        password,
-        company_name,
-        available_credits,
-        color_scheme,
-        logo_url,
-        login_heading,
-        login_subheading
+        name, 
+        description,
       },
       {
         headers: {
@@ -132,7 +114,7 @@ export const fetchSubAccounts = createAsyncThunk(
   'auth/fetchSubAccounts',
   async () => {
     const token = localStorage.getItem('access_token');
-    const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/subaccounts', {
+    const response = await axios.get('http://localhost:8080/subaccounts', {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -147,17 +129,17 @@ export const updateSubAccount = createAsyncThunk(
   async ({ id, userData }: { 
     id: number, 
     userData: {
-      username?: string;
-      email?: string;
       company_name?: string;
-      password?: string;
-      available_credits?: number;
+      description?: string;
     }
   }) => {
     const token = localStorage.getItem('access_token');
     const response = await axios.patch(
-      `https://retell-demo-be-cfbda6d152df.herokuapp.com/subaccounts/${id}`,
-      userData,
+      `http://localhost:8080/subaccounts/${id}`,
+      {
+        name: userData.company_name, // Map company_name to name for API
+        description: userData.description,
+      },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -165,7 +147,14 @@ export const updateSubAccount = createAsyncThunk(
         },
       }
     );
-    return response.data;
+    
+    // Transform the response back to our frontend format
+    return {
+      id: response.data.id,
+      company_name: response.data.name,
+      description: response.data.description,
+      created_at: response.data.created_at
+    };
   }
 );
 
@@ -173,7 +162,7 @@ export const deleteSubAccount = createAsyncThunk(
   'auth/deleteSubAccount',
   async (id: number) => {
     const token = localStorage.getItem('access_token');
-    await axios.delete(`https://retell-demo-be-cfbda6d152df.herokuapp.com/subaccounts/${id}`, {
+    await axios.delete(`http://localhost:8080/subaccounts/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

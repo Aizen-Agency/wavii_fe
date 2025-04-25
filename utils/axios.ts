@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://retell-demo-be-cfbda6d152df.herokuapp.com',
+  baseURL: 'http://localhost:8080',
 });
 
 // Add a request interceptor

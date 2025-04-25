@@ -161,7 +161,7 @@ export const registerToTrunk = createAsyncThunk(
   async ({ phonesid, accountSid, authToken }: { phonesid: string, accountSid: string, authToken: string }, { getState }) => {
     let domain_name = '';
     let trunk = null;
-    const response = await fetch("https://retell-demo-be-cfbda6d152df.herokuapp.com/get-trunks", {
+    const response = await fetch("http://localhost:8080/get-trunks", {
         headers: {
           "Content-Type": "application/json",
           "twilio-sid": accountSid,

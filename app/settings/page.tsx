@@ -11,6 +11,7 @@ import TwilioAccounts from "./twilio-accounts"
 
 import type { AppDispatch } from "@/store/store"
 import { updateUser } from "@/store/authSlice"
+import PermissionWrapper from "@/components/PermissionWrapper"
 
 // Define a type for the user data
 type UserData = {
@@ -228,7 +229,9 @@ export default function SettingsPage() {
               </div>
 
               <div className="flex justify-end">
+                <PermissionWrapper componentName="EditAgent">
                 <Button type="submit">Save Changes</Button>
+                </PermissionWrapper>
               </div>
             </form>
           </TabsContent>

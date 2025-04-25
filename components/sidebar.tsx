@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Settings, Users, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react" 
+import PermissionWrapper from "./PermissionWrapper"
 // import { useRouter } from "next/navigation"
 
 export function Sidebar( { activeTab }: { activeTab: string } ) {
@@ -65,6 +66,7 @@ export function Sidebar( { activeTab }: { activeTab: string } ) {
           All Agents
         </Link>
 
+        <PermissionWrapper componentName="Subaccount">
         {!isSubaccount && (
           <Link
             href="/subaccounts"
@@ -76,7 +78,8 @@ export function Sidebar( { activeTab }: { activeTab: string } ) {
             Subaccounts
           </Link>
         )}
-
+        </PermissionWrapper>
+        <PermissionWrapper componentName="Numbers">
         <Link
           href="/phone-numbers"
           className={`flex items-center px-3 py-2 text-sm rounded-lg ${
@@ -87,6 +90,7 @@ export function Sidebar( { activeTab }: { activeTab: string } ) {
           <Phone className="w-5 h-5 mr-3" />
           Phone Numbers
         </Link>
+        </PermissionWrapper>
 
         <Link
           href="/settings"

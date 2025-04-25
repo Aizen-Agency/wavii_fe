@@ -8,6 +8,7 @@ import { LayoutGrid, Grid2X2, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AppDispatch, RootState } from "@/store/store"
 import LoadingOverlay from "@/components/loadingOverlay"
+import PermissionWrapper from "@/components/PermissionWrapper"
 
 
 interface Agent {
@@ -58,6 +59,7 @@ export function MainContent() {
           <h1 className="text-2xl font-bold">Your Agents</h1>
 
           <div className="flex items-center gap-3">
+            <PermissionWrapper componentName="CreateAgent">
             <Button
               variant="outline"
               className="text-purple-600 border-purple-600"
@@ -65,10 +67,13 @@ export function MainContent() {
             >
               <span className="mr-2">+</span> Quick Create
             </Button>
+            </PermissionWrapper>
+            <PermissionWrapper componentName="CreateAgent">
             <Button className="bg-purple-600 hover:bg-purple-700"
             onClick={() => router.push("/agent/0")}>
               <span className="mr-2">+</span> Create New Agent
             </Button>
+            </PermissionWrapper>
 
             <div className="flex items-center border rounded-lg p-1 ml-4">
               <button className="p-1.5 rounded hover:bg-gray-50">
@@ -102,6 +107,7 @@ export function MainContent() {
                 Created At: {new Date(agent.created_at).toLocaleDateString("en-GB")}
               </p>
               <div className="absolute bottom-2 right-2 flex gap-2">
+                <PermissionWrapper componentName="Dashboard">
                 <Button
                   variant="outline"
                   size="sm"
@@ -112,6 +118,8 @@ export function MainContent() {
                 >
                   Dashboard
                 </Button>
+                </PermissionWrapper>
+                 <PermissionWrapper componentName="DeleteAgent">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -121,6 +129,7 @@ export function MainContent() {
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
+                </PermissionWrapper>
               </div>
             </div>
           ))}

@@ -1,6 +1,7 @@
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode, useEffect } from 'react';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Resource } from '@/config/permissions';
+import { permissionService } from '@/services/permissionService';
 
 interface PermissionContextType {
   userPermissions: Resource[];
@@ -15,6 +16,19 @@ const PermissionContext = createContext<PermissionContextType | undefined>(undef
 
 export function PermissionProvider({ children }: { children: ReactNode }) {
   const permissions = usePermissions();
+
+  // Add effect to refresh permissions when auth state changes
+  useEffect(() => {
+    const checkAuthAndRefresh = async () => {
+      if (permissionService.isAuthenticated()) {
+        await permissions.refreshPermissions();
+      } else {
+        permissions.clearPermissions();
+      }
+    };
+
+    checkAuthAndRefresh();
+  }, []);
 
   return (
     <PermissionContext.Provider value={permissions}>

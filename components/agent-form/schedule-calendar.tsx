@@ -124,7 +124,13 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
           'Authorization': `Bearer ${token}`
         }
       })
-      if (!response.ok) throw new Error('Failed to fetch bookings')
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Calendar is not integrated yet');
+          return;
+        }
+        throw new Error('Failed to fetch bookings')
+      }
       const data = await response.json()
       if (data.status === 'success') {
         setBookings(data.data.bookings)
@@ -148,7 +154,13 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
           'Authorization': `Bearer ${token}`
         }
       })
-      if (!response.ok) throw new Error('Failed to fetch schedules')
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Calendar is not integrated yet');
+          return;
+        }
+        throw new Error('Failed to fetch schedules')
+      }
       const data: ScheduleResponse = await response.json()
       setSchedules(data)
     } catch (error) {

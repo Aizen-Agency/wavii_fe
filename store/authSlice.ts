@@ -1,26 +1,41 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import axiosInstance from '@/utils/axios';
 
 export const login = createAsyncThunk(
   'auth/login',
-  async ({ email, password }: { email: string; password: string }) => {
-    const response = await axios.post('http://localhost:8080/login', {
-      email,
-      password,
-    });
-    return response.data.token; // Assuming the response contains the token
+  async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post('http://localhost:8080/login', {
+        email,
+        password,
+      });
+      return response.data.token;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data || { error: 'Login failed' });
+      }
+      return rejectWithValue({ error: 'An unexpected error occurred' });
+    }
   }
 );
 
 export const fetchUserData = createAsyncThunk(
   'auth/fetchUserData',
-  async (token: string) => {
-    const response = await axios.get('http://localhost:8080/user', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return response.data; // Assuming the response contains user data
+  async (token: string, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get('/user', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data || { error: 'Failed to fetch user data' });
+      }
+      return rejectWithValue({ error: 'An unexpected error occurred' });
+    }
   }
 );
 

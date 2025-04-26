@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { AppDispatch, RootState } from "@/store/store"
 import LoadingOverlay from "@/components/loadingOverlay"
 import PermissionWrapper from "@/components/PermissionWrapper"
+import { toast } from 'react-toastify'
 
 
 interface Agent {
@@ -60,19 +61,21 @@ export function MainContent() {
 
           <div className="flex items-center gap-3">
             <PermissionWrapper componentName="CreateAgent">
-            <Button
-              variant="outline"
-              className="text-purple-600 border-purple-600"
-              onClick={() => router.push("/quick-create")}
-            >
-              <span className="mr-2">+</span> Quick Create
-            </Button>
+              <Button
+                variant="outline"
+                className="text-purple-600 border-purple-600"
+                onClick={() => router.push("/quick-create")}
+              >
+                <span className="mr-2">+</span> Quick Create
+              </Button>
             </PermissionWrapper>
             <PermissionWrapper componentName="CreateAgent">
-            <Button className="bg-purple-600 hover:bg-purple-700"
-            onClick={() => router.push("/agent/0")}>
-              <span className="mr-2">+</span> Create New Agent
-            </Button>
+              <Button 
+                className="bg-purple-600 hover:bg-purple-700"
+                onClick={() => router.push("/agent/0")}
+              >
+                <span className="mr-2">+</span> Create New Agent
+              </Button>
             </PermissionWrapper>
 
             <div className="flex items-center border rounded-lg p-1 ml-4">
@@ -86,10 +89,26 @@ export function MainContent() {
           </div>
         </div>
 
-        {/* Render agent list in grid f ormat */}
+        {/* Render agent list in grid format */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {status === 'loading' && <p>Loading...</p>}
-          {status === 'failed' && <p>Error: {error || JSON.stringify(error)}</p>}
+          {status === 'failed' && (
+            <div className="col-span-full text-center p-4">
+              <p className="text-red-500">Unable to load agents. Please try again later.</p>
+              <Button 
+                variant="outline" 
+                className="mt-2"
+                onClick={() => dispatch(fetchAgents())}
+              >
+                Retry
+              </Button>
+            </div>
+          )}
+          {status === 'succeeded' && agents.length === 0 && (
+            <div className="col-span-full text-center p-4">
+              <p className="text-gray-500">No agents found. Create your first agent to get started.</p>
+            </div>
+          )}
           {status === 'succeeded' && agents.map((agent: Agent) => (
             <div
               key={agent.id}
@@ -108,27 +127,27 @@ export function MainContent() {
               </p>
               <div className="absolute bottom-2 right-2 flex gap-2">
                 <PermissionWrapper componentName="Dashboard">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.push(`/agent/${agent.id}/dashboard`);
-                  }}
-                >
-                  Dashboard
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/agent/${agent.id}/dashboard`);
+                    }}
+                  >
+                    Dashboard
+                  </Button>
                 </PermissionWrapper>
-                 <PermissionWrapper componentName="DeleteAgent">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(agent.id);
-                  }}
-                  className="p-1 text-red-600 hover:text-red-800"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+                <PermissionWrapper componentName="DeleteAgent">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(agent.id);
+                    }}
+                    className="p-1 text-red-600 hover:text-red-800"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
                 </PermissionWrapper>
               </div>
             </div>

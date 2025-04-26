@@ -84,7 +84,10 @@ export const fetchAgents = createAsyncThunk(
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
-      return rejectWithValue(axiosError.response?.data || { error: 'Unknown error' });
+      if (axiosError.response?.status === 403) {
+        return rejectWithValue({ error: 'You do not have permission to view agents' });
+      }
+      return rejectWithValue(axiosError.response?.data || { error: 'Failed to fetch agents' });
     }
   }
 );

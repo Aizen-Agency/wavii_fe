@@ -5,16 +5,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { login, fetchUserData } from "@/store/authSlice"; // Adjust the path as necessary
-import { RootState, AppDispatch } from "@/store/store"; // Adjust the path as necessary
-import LoadingOverlay from "@/components/loadingOverlay"; // Import LoadingOverlay
-import { toast } from 'react-toastify'; // Import toast for popups
+import { login, fetchUserData } from "@/store/authSlice";
+import { RootState, AppDispatch } from "@/store/store";
+import LoadingOverlay from "@/components/loadingOverlay";
+import { toast } from 'react-toastify';
 import { permissionService } from "@/services/permissionService";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const token = useSelector((state: RootState) => state.auth.token);
   const user = useSelector((state: RootState) => state.auth.user);
@@ -23,25 +23,39 @@ export default function LoginPage() {
   useEffect(() => {
     if (token) {
       localStorage.setItem('access_token', token);
-      dispatch(fetchUserData(token));
-      // Fetch and store permissions after successful login
-      permissionService.fetchUserPermissions()
-        .then(permissions => {
-          permissionService.storePermissions(permissions);
-        })
-        .catch(error => {
-          console.error('Error fetching permissions:', error);
-          toast.error('Failed to fetch user permissions');
-        });
-    }
-  }, [token, dispatch]);
+      
+      // Fetch user data and permissions in parallel
+      const initializeUser = async () => {
+        try {
+          const [userData, permissions] = await Promise.all([
+            dispatch(fetchUserData(token)).unwrap(),
+            permissionService.fetchUserPermissions()
+          ]);
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-      router.push('/');
+          // Store user data
+          if (userData) {
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+
+          // Store permissions
+          if (permissions) {
+            permissionService.storePermissions(permissions);
+          }
+
+          // Only redirect if both operations were successful
+          router.push('/');
+        } catch (error) {
+          console.error('Error during initialization:', error);
+          toast.error('Failed to initialize user data. Please try again.');
+          // Clear token if initialization fails
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user');
+        }
+      };
+
+      initializeUser();
     }
-  }, [user, router]);
+  }, [token, dispatch, router]);
 
   useEffect(() => {
     // Check if there's no token on page load
@@ -54,21 +68,24 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true); // Set loading to true when form is submitted
+    setLoading(true);
     try {
       await dispatch(login({ email, password })).unwrap();
-      toast.success("Login successful!"); // Show success popup
+      toast.success("Login successful!");
     } catch (error) {
-      console.log(error);
-      toast.error("Login failed. Please try again."); // Show error popup
+      console.error('Login error:', error);
+      toast.error("Login failed. Please check your credentials and try again.");
+      // Clear any partial data
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
     } finally {
-      setLoading(false); // Set loading to false after API call
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      {loading && <LoadingOverlay />} {/* Show loading overlay when loading */}
+      {loading && <LoadingOverlay />}
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow-md">
         <h2 className="text-2xl font-bold text-center text-purple-600">Login</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -103,7 +120,7 @@ export default function LoginPage() {
           </Button>
         </form>
         <p className="text-sm text-center text-gray-600">
-        Don&apos;t have an account? <Link href="/auth/register" className="text-purple-600">Register</Link>
+          Don&apos;t have an account? <Link href="/auth/register" className="text-purple-600">Register</Link>
         </p>
       </div>
     </div>

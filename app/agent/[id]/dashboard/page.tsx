@@ -11,6 +11,7 @@ import axiosInstance from "@/utils/axios"
 import { toast } from "react-toastify"
 import LoadingOverlay from "@/components/loadingOverlay"
 import PermissionWrapper from '@/components/PermissionWrapper'
+import { usePermissionContext } from "@/contexts/PermissionContext"
 
 interface AgentStats {
   total_calls: number;
@@ -36,6 +37,7 @@ export default function AgentDashboard() {
   const [stats, setStats] = useState<AgentStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { checkPermission } = usePermissionContext();
   const [dateRange, setDateRange] = useState<{
     startDate: string;
     endDate: string;
@@ -44,16 +46,20 @@ export default function AgentDashboard() {
     endDate: new Date().toISOString().split('T')[0]
   });
 
+  let canViewDashboard = checkPermission(9, 2);
+  
+
   const fetchStats = async (startDate?: string, endDate?: string) => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
       if (startDate) params.append('start_date', startDate);
       if (endDate) params.append('end_date', endDate);
-      
-      const response = await axiosInstance.get(`/agents/${agentId}/stats?${params.toString()}`);
-      setStats(response.data);
-      setError(null);
+      if (canViewDashboard) {
+        const response = await axiosInstance.get(`/agents/${agentId}/stats?${params.toString()}`);
+        setStats(response.data);
+        setError(null);
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -68,6 +74,7 @@ export default function AgentDashboard() {
   };
 
   useEffect(() => {
+
     fetchStats(dateRange.startDate, dateRange.endDate);
   }, [agentId, dateRange]);
 
@@ -216,7 +223,7 @@ export default function AgentDashboard() {
 
       {/* Cost Breakdown Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        <PermissionWrapper componentName="DashboardCostBreakdown">
+        <PermissionWrapper componentName="Dashboard">
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Cost Breakdown</h3>
             <div className="space-y-4">
@@ -247,7 +254,7 @@ export default function AgentDashboard() {
         </PermissionWrapper>
 
         {/* Call Duration Distribution */}
-        <PermissionWrapper componentName="DashboardCostBreakdown">
+        <PermissionWrapper componentName="Dashboard">
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Call Duration Distribution</h3>
             <div className="space-y-4">

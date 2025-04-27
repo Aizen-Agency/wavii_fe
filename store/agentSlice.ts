@@ -170,7 +170,7 @@ export const integrateCalendar = createAsyncThunk(
   async ({ agent_id, cal_api_key, event_type_id }: IntegrateCalendarParams, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://localhost:8080/agents/${agent_id}/integrate-calendar`, {
+      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/agents/${agent_id}/integrate-calendar`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

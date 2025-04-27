@@ -119,7 +119,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const fetchBookings = async () => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`http://localhost:8080/agents/${agentId}/bookings`, {
+      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/agents/${agentId}/bookings`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -149,7 +149,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const fetchSchedules = async () => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`http://localhost:8080/agents/${agentId}/schedules`, {
+      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/agents/${agentId}/schedules`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -202,7 +202,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const fetchDateAvailability = async (date: string) => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`http://localhost:8080/agents/${agentId}/date-availability/${date}`, {
+      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/agents/${agentId}/date-availability/${date}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -220,7 +220,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const updateDateAvailability = async (date: string, timeSlots: { start: string, end: string }[]) => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`http://localhost:8080/agents/${agentId}/date-availability`, {
+      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/agents/${agentId}/date-availability`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -244,7 +244,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
   const deleteDateAvailability = async (date: string) => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await fetch(`http://localhost:8080/agents/${agentId}/date-availability/${date}`, {
+      const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/agents/${agentId}/date-availability/${date}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -358,7 +358,7 @@ export function ScheduleCalendar({ agentId }: ScheduleCalendarProps) {
           })
         })
 
-        const response = await fetch(`http://localhost:8080/agents/${agentId}/schedules/${schedule.id}`, {
+        const response = await fetch(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/agents/${agentId}/schedules/${schedule.id}`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,

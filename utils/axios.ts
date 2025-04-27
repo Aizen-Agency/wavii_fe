@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook',
+  baseURL: 'https://retell-demo-be-cfbda6d152df.herokuapp.com',
 });
 
 // Add a request interceptor

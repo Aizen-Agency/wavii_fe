@@ -15,7 +15,7 @@ export function useAuth() {
       setError(null);
 
       // Call your login API
-      const response = await fetch('https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/api/auth/login', {
+      const response = await fetch('https://retell-demo-be-cfbda6d152df.herokuapp.com/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

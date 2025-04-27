@@ -37,7 +37,7 @@ export const fetchVoices = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/list-voices', {
+      const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/list-voices', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

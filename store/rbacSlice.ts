@@ -54,7 +54,7 @@ const initialState: RBACState = {
 export const fetchResources = createAsyncThunk(
   'rbac/fetchResources',
   async () => {
-    const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/api/rbac/resources', {
+    const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/api/rbac/resources', {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
       },
@@ -66,7 +66,7 @@ export const fetchResources = createAsyncThunk(
 export const fetchPermissions = createAsyncThunk(
   'rbac/fetchPermissions',
   async () => {
-    const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/api/rbac/permissions', {
+    const response = await axios.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/api/rbac/permissions', {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
       },
@@ -78,7 +78,7 @@ export const fetchPermissions = createAsyncThunk(
 export const fetchResourcePermissions = createAsyncThunk(
   'rbac/fetchResourcePermissions',
   async (roleId: number) => {
-    const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/api/rbac/roles/${roleId}/resources`, {
+    const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/api/rbac/roles/${roleId}/resources`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
       },
@@ -91,7 +91,7 @@ export const assignPermission = createAsyncThunk(
   'rbac/assignPermission',
   async ({ roleId, resourceId, permissionId }: { roleId: number; resourceId: number; permissionId: number }) => {
     const response = await axios.post(
-      `https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/api/rbac/roles/${roleId}/resources/${resourceId}/permissions/${permissionId}`,
+      `https://retell-demo-be-cfbda6d152df.herokuapp.com/api/rbac/roles/${roleId}/resources/${resourceId}/permissions/${permissionId}`,
       {},
       {
         headers: {
@@ -107,7 +107,7 @@ export const removePermission = createAsyncThunk(
   'rbac/removePermission',
   async ({ roleId, resourceId, permissionId }: { roleId: number; resourceId: number; permissionId: number }) => {
     const response = await axios.delete(
-      `https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/api/rbac/roles/${roleId}/resources/${resourceId}/permissions/${permissionId}`,
+      `https://retell-demo-be-cfbda6d152df.herokuapp.com/api/rbac/roles/${roleId}/resources/${resourceId}/permissions/${permissionId}`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
@@ -121,7 +121,7 @@ export const removePermission = createAsyncThunk(
 export const fetchRoleUsers = createAsyncThunk(
   'rbac/fetchRoleUsers',
   async (roleId: number) => {
-    const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/api/rbac/roles/${roleId}/users`, {
+    const response = await axios.get(`https://retell-demo-be-cfbda6d152df.herokuapp.com/api/rbac/roles/${roleId}/users`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
       },
@@ -134,7 +134,7 @@ export const assignUserToRole = createAsyncThunk(
   'rbac/assignUserToRole',
   async ({ roleId, email }: { roleId: number; email: string }) => {
     const response = await axios.post(
-      `https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/api/rbac/roles/${roleId}/assign-user`,
+      `https://retell-demo-be-cfbda6d152df.herokuapp.com/api/rbac/roles/${roleId}/assign-user`,
       { email },
       {
         headers: {
@@ -150,7 +150,7 @@ export const removeUserFromRole = createAsyncThunk(
   'rbac/removeUserFromRole',
   async ({ userId, roleId }: { userId: number; roleId: number }) => {
     const response = await axios.delete(
-      `https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/api/rbac/users/${userId}/roles/${roleId}`,
+      `https://retell-demo-be-cfbda6d152df.herokuapp.com/api/rbac/users/${userId}/roles/${roleId}`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,

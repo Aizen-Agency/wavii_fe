@@ -10,7 +10,7 @@ export const permissionService = {
     }
 
     try {
-      const response = await axiosInstance.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/agent-webhook/api/rbac/roles/0/resources', {
+      const response = await axiosInstance.get('https://retell-demo-be-cfbda6d152df.herokuapp.com/api/rbac/roles/0/resources', {
         headers: {
           Authorization: `Bearer ${token}`
         }

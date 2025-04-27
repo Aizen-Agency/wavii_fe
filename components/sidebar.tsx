@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Settings, Users, Phone } from "lucide-react"
+import { Settings, Users, Phone, BarChart, Calendar, Home, Link as LinkIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react" 
 import PermissionWrapper from "./PermissionWrapper"
@@ -56,16 +56,41 @@ export function Sidebar( { activeTab }: { activeTab: string } ) {
 
       <nav className="flex-1 px-3 py-2 space-y-1">
         <Link
+          href="/"
+          className={`flex items-center px-3 py-2 text-sm rounded-lg ${
+            activeTab === '/' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          <Home className="w-5 h-5 mr-3" />
+          Home
+        </Link>
+        <Link
+          href="/analytics"
+          className={`flex items-center px-3 py-2 text-sm rounded-lg ${
+            activeTab === '/analytics' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          <BarChart className="w-5 h-5 mr-3" />
+          Analytics
+        </Link>
+        <Link
+          href="/phone-numbers"
+          className={`flex items-center px-3 py-2 text-sm rounded-lg ${
+            activeTab === '/phone-numbers' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          <Phone className="w-5 h-5 mr-3" />
+          Phone
+        </Link>
+        <Link
           href="/agents"
           className={`flex items-center px-3 py-2 text-sm rounded-lg ${
             activeTab === '/agents' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
           }`}
-          
         >
           <Users className="w-5 h-5 mr-3" />
-          All Agents
+          Agents
         </Link>
-
         <PermissionWrapper componentName="Subaccount">
         {!isSubaccount && (
           <Link
@@ -79,29 +104,32 @@ export function Sidebar( { activeTab }: { activeTab: string } ) {
           </Link>
         )}
         </PermissionWrapper>
-        <PermissionWrapper componentName="Numbers">
         <Link
-          href="/phone-numbers"
+          href="/calendar"
           className={`flex items-center px-3 py-2 text-sm rounded-lg ${
-            activeTab === '/phone-numbers' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+            activeTab === '/calendar' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
           }`}
-          
         >
-          <Phone className="w-5 h-5 mr-3" />
-          Phone Numbers
+          <Calendar className="w-5 h-5 mr-3" />
+          Calendar
         </Link>
-        </PermissionWrapper>
-
         <Link
           href="/settings"
           className={`flex items-center px-3 py-2 text-sm rounded-lg ${
             activeTab === '/settings' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
           }`}
-          
         >
           <Settings className="w-5 h-5 mr-3" />
           Settings
-          <span className="ml-2 text-xs text-gray-400">Coming Soon</span>
+        </Link>
+        <Link
+          href="/connections"
+          className={`flex items-center px-3 py-2 text-sm rounded-lg ${
+            activeTab === '/connections' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          <LinkIcon className="w-5 h-5 mr-3" />
+          Connections
         </Link>
       </nav>
 

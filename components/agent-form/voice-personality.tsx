@@ -1,22 +1,79 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { fetchAgentById, updateAgent } from '@/store/agentSlice';
-import { AppDispatch } from '@/store/store';
-
+import { fetchVoices } from '@/store/voiceSlice';
+import { AppDispatch, RootState } from '@/store/store';
+import { useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Play, Pause } from "lucide-react";
+import { useState } from "react";
 
 interface VoicePersonalityProps {
   formData: {
-    id: number
-   
-    personality: string
-   
+    id: number;
+    voiceType: string;
+    personality: string;
+    accent: string;
   }
   updateFormData: (data: Partial<VoicePersonalityProps["formData"]>) => void
 }
 
 export function VoicePersonality({ formData }: VoicePersonalityProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const voices = useSelector((state: RootState) => state.voice.voices);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    dispatch(fetchVoices());
+  }, [dispatch]);
+
+  const updateAgentVoice = async (agentId: number, newVoice: string) => {
+    const fetchResult = await dispatch(fetchAgentById(agentId));
+
+    if (fetchResult.type === 'agent/fetchAgentById/fulfilled') {
+      const agent = fetchResult.payload;
+      const updatedAgent = { 
+        ...agent, 
+        voice: newVoice
+      };
+      
+      const updateResult = await dispatch(updateAgent(updatedAgent));
+      if (updateResult.type === 'agent/updateAgent/fulfilled') {
+        console.log('Agent voice updated successfully');
+      } else {
+        console.error('Failed to update agent voice:', updateResult.payload);
+      }
+    }
+  };
+
+  const playVoiceSample = (voiceId: string) => {
+    const voice = voices.find(v => v.voice_id === voiceId);
+    if (voice?.preview_audio_url) {
+      if (audioElement) {
+        audioElement.pause();
+        audioElement.currentTime = 0;
+      }
+      const audio = new Audio(voice.preview_audio_url);
+      audio.play();
+      setAudioElement(audio);
+      setIsPlaying(true);
+      audio.onended = () => {
+        setIsPlaying(false);
+        setAudioElement(null);
+      };
+    }
+  };
+
+  const stopVoiceSample = () => {
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.currentTime = 0;
+      setIsPlaying(false);
+      setAudioElement(null);
+    }
+  };
 
   const updateAgentPersonality = async (agentId: number, newPersonality: string) => {
     // Fetch the agent by ID
@@ -58,23 +115,42 @@ export function VoicePersonality({ formData }: VoicePersonalityProps) {
 
   return (
     <div className="space-y-6">
-      {/* <div className="space-y-2">
+      <div className="space-y-2">
         <Label>Voice Type</Label>
-        <Select value={formData.voiceType} onValueChange={(value: string) => updateFormData({ voiceType: value })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select voice type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Alloy">Alloy</SelectItem>
-            <SelectItem value="Echo">Echo</SelectItem>
-            <SelectItem value="Fable">Fable</SelectItem>
-          </SelectContent>
-        </Select>
-      </div> */}
+        <div className="flex gap-2">
+          <Select 
+            value={formData.voiceType} 
+            onValueChange={(value: string) => updateAgentVoice(formData.id, value)}
+          >
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder="Select voice type" />
+            </SelectTrigger>
+            <SelectContent>
+              {voices.map((voice) => (
+                <SelectItem key={voice.voice_id} value={voice.voice_id}>
+                  {voice.voice_name} ({voice.provider})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {formData.voiceType && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => isPlaying ? stopVoiceSample() : playVoiceSample(formData.voiceType)}
+            >
+              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </Button>
+          )}
+        </div>
+      </div>
 
       <div className="space-y-2">
         <Label>Personality</Label>
-        <Select value={formData.personality} onValueChange={(value: string) => updateAgentPersonality(formData.id, value)}>
+        <Select 
+          value={formData.personality} 
+          onValueChange={(value: string) => updateAgentPersonality(formData.id, value)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select personality" />
           </SelectTrigger>
@@ -85,26 +161,13 @@ export function VoicePersonality({ formData }: VoicePersonalityProps) {
           </SelectContent>
         </Select>
       </div>
-{/* 
-      <div className="space-y-2">
-        <Label>Main Goal</Label>
-        <Select value={formData.mainGoal} onValueChange={(value: string) => updateFormData({ mainGoal: value })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select main goal" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Schedule meetings with potential clients">
-              Schedule meetings with potential clients
-            </SelectItem>
-            <SelectItem value="Answer product questions">Answer product questions</SelectItem>
-            <SelectItem value="Provide customer support">Provide customer support</SelectItem>
-          </SelectContent>
-        </Select>
-      </div> */}
 
-      {/* <div className="space-y-2">
+      <div className="space-y-2">
         <Label>Accent</Label>
-        <Select value={formData.accent} onValueChange={(value: string) => updateFormData({ accent: value })}>
+        <Select 
+          value={formData.accent} 
+          onValueChange={(value: string) => updateAgentVoice(formData.id, value)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select accent" />
           </SelectTrigger>
@@ -114,15 +177,8 @@ export function VoicePersonality({ formData }: VoicePersonalityProps) {
             <SelectItem value="Australian">Australian</SelectItem>
           </SelectContent>
         </Select>
-      </div> */}
-
-      {/* <div className="flex gap-4">
-        <Button className="flex-1 bg-purple-600 hover:bg-purple-700">Save Changes</Button>
-        <Button variant="outline" className="flex-1">
-          Play Sample
-        </Button>
-      </div> */}
+      </div>
     </div>
-  )
+  );
 }
 

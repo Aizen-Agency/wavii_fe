@@ -101,19 +101,20 @@ const handle403Error = (error: Response) => {
 export const fetchCallLogs = createAsyncThunk(
   'callLogs/fetchCallLogs',
   async ({ agentId, paginationKey, searchQuery }: { agentId: number; paginationKey?: string; searchQuery?: string }, { getState, rejectWithValue }) => {
-    const url = new URL(`/agents/${agentId}/call-logs`);
-    url.searchParams.append('limit', '50');
-    if (paginationKey) {
-      url.searchParams.append('pagination_key', paginationKey);
-    }
-    if (searchQuery) {
-      url.searchParams.append('to_number', searchQuery);
-    }
-    
     try {
-      const response = await axiosInstance.get(url.toString());
+      const params = new URLSearchParams();
+      params.append('limit', '50');
+      if (paginationKey) {
+        params.append('pagination_key', paginationKey);
+      }
+      if (searchQuery) {
+        params.append('to_number', searchQuery);
+      }
+      
+      const response = await axiosInstance.get(`/agents/${agentId}/call-logs?${params.toString()}`);
       return response.data;
     } catch (error) {
+      console.error('Error fetching call logs:', error);
       return rejectWithValue('Failed to fetch call logs');
     }
   }

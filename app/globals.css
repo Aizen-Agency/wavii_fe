@@ -46,3 +46,40 @@
   }
 }
 
+.agent-tiles-scroll {
+  scrollbar-gutter: stable both;
+  position: relative;
+  z-index: 10;
+}
+.agent-tiles-scroll::-webkit-scrollbar {
+  height: 8px;
+  background: transparent;
+  transition: background 0.2s;
+}
+.agent-tiles-scroll:not(:hover)::-webkit-scrollbar {
+  height: 8px;
+  background: transparent;
+}
+.agent-tiles-scroll:hover::-webkit-scrollbar {
+  background: #e5e7eb;
+}
+.agent-tiles-scroll::-webkit-scrollbar-thumb {
+  background: #a78bfa;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.agent-tiles-scroll:not(:hover)::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+.agent-tiles-scroll:hover::-webkit-scrollbar-thumb {
+  background: #a78bfa;
+}
+/* For Firefox */
+.agent-tiles-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.agent-tiles-scroll:hover {
+  scrollbar-color: #a78bfa #e5e7eb;
+}
+

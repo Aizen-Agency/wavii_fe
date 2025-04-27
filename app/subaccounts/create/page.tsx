@@ -1,78 +1,67 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, HelpCircle, Upload, User } from "lucide-react"
-import { useDispatch } from "react-redux"
-import { AppDispatch } from "@/store/store" 
-import { createSubAccount, uploadLogo } from "@/store/authSlice"
-
+import { ArrowLeft, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import PermissionWrapper from "@/components/PermissionWrapper"
 
 export default function CreateSubAccountPage() {
-  const dispatch = useDispatch<AppDispatch>()
-  const [colorScheme, setColorScheme] = useState("#000000")
-  const [credits, setCredits] = useState(0)
-  const [logo, setLogo] = useState<File | null>(null)
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    company_name: "",
-    login_heading: "Welcome Back",
-    login_subheading: "Sign in to continue to your account",
-  })
+  // const dispatch = useDispatch<AppDispatch>()
+  // const [formData, setFormData] = useState({
+  //   email: "",
+  //   password: "",
+  //   company_name: "",
+  //   login_heading: "Welcome Back",
+  //   login_subheading: "Sign in to continue to your account",
+  // })
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      // Validate file type and size
-      if (!file.type.startsWith('image/')) {
-        alert('Please upload an image file')
-        return
-      }
-      // Optional: Add size limit (e.g., 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size should be less than 5MB')
-        return
-      }
-      setLogo(file)
-    }
-  }
+  // const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0]
+  //   if (file) {
+  //     // Validate file type and size
+  //     if (!file.type.startsWith('image/')) {
+  //       alert('Please upload an image file')
+  //       return
+  //     }
+  //     // Optional: Add size limit (e.g., 5MB)
+  //     if (file.size > 5 * 1024 * 1024) {
+  //       alert('File size should be less than 5MB')
+  //       return
+  //     }
+  //     setLogo(file)
+  //   }
+  // }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault()
     
-    try {
-      let logoUrl
-      if (logo) {
-        // Create FormData for file upload
-        const uploadData = new FormData()
-        uploadData.append('file', logo)
+  //   try {
+  //     let logoUrl
+  //     if (logo) {
+  //       // Create FormData for file upload
+  //       const uploadData = new FormData()
+  //       uploadData.append('file', logo)
         
-        const uploadResult = await dispatch(uploadLogo(uploadData as unknown as File)).unwrap() 
-        logoUrl = uploadResult.url
-      }
+  //       const uploadResult = await dispatch(uploadLogo(uploadData as unknown as File)).unwrap() 
+  //       logoUrl = uploadResult.url
+  //     }
 
-      await dispatch(createSubAccount({
-        name: formData.company_name,
-        description: formData.company_name,
-      }))
-    } catch (error) {
-      console.error('Error creating subaccount:', error)
-      alert('Failed to create subaccount. Please try again.')
-    }
-  }
+  //     await dispatch(createSubAccount({
+  //       name: formData.company_name,
+  //       description: formData.company_name,
+  //     }))
+  //   } catch (error) {
+  //     console.error('Error creating subaccount:', error)
+  //     alert('Failed to create subaccount. Please try again.')
+  //   }
+  // }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.id]: e.target.value
-    })
-  }
+  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setFormData({
+  //     ...formData,
+  //     [e.target.id]: e.target.value
+  //   })
+  // }
 
   return (
     <div className="flex min-h-screen">

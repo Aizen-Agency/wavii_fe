@@ -9,12 +9,12 @@ import { VoicePersonality } from "@/components/agent-form/voice-personality"
 import { KnowledgeBase } from "@/components/agent-form/knowledge-base"
 import { ConversationFlow } from "@/components/agent-form/conversation-flow"
 import { Integration } from "@/components/agent-form/integration"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
 import { fetchAgents } from "@/store/agentSlice"
 import { AppDispatch, RootState } from "@/store/store"
 import { useRouter } from "next/navigation"
-import PermissionWrapper from "@/components/PermissionWrapper"
+
 const steps = [
   { id: 1, name: "Agent Basics" },
   { id: 2, name: "Personality" },
@@ -25,6 +25,7 @@ const steps = [
 
 export default function EditAgentPage() {
   const { id: agentId } = useParams();
+  const searchParams = useSearchParams();
   const dispatch = useDispatch<AppDispatch>();
   const selectedAgent = useSelector((state: RootState) => state.agent.selectedAgent);
   const router = useRouter();
@@ -43,6 +44,12 @@ export default function EditAgentPage() {
     cal_event_id: "",
   })
 
+  useEffect(() => {
+    const step = searchParams.get('step');
+    if (step) {
+      setCurrentStep(parseInt(step));
+    }
+  }, [searchParams]);
 
   const handleGoBack = () => {
     router.push(`/agent/${formData.id}`)

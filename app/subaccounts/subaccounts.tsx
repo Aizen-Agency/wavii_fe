@@ -7,9 +7,7 @@ import { fetchResources, fetchPermissions, assignPermission, removePermission, f
 import type { Resource } from "@/store/rbacSlice"
 import { useState, useEffect } from "react"
 import { AppDispatch, RootState } from "@/store/store"
-import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 
 import {
@@ -22,7 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 interface SubAccount {
-  id: string;
+  id: number;
   name: string;  // This will be our "name"
   description: string;   // We'll need to add this field
   created_at: string;
@@ -44,7 +42,6 @@ export default function SubAccountsDashboard() {
   });
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<SubAccount | null>(null);
-  const router = useRouter()
   const [activeTab, setActiveTab] = useState("details");
   const resources = useSelector((state: RootState) => state.rbac.resources);
   const permissions = useSelector((state: RootState) => state.rbac.permissions);
@@ -257,20 +254,20 @@ export default function SubAccountsDashboard() {
     return parentPermissions.length > 0;
   };
 
-  const getMaxParentPermission = (resourceId: number): number => {
-    const resource = resources.find(r => r.id === resourceId);
-    if (!resource?.parent_resource_id) return Math.max(...permissions.map(p => p.id));
+  // const getMaxParentPermission = (resourceId: number): number => {
+  //   const resource = resources.find(r => r.id === resourceId);
+  //   if (!resource?.parent_resource_id) return Math.max(...permissions.map(p => p.id));
 
-    const parentResource = resources.find(r => r.id === resource.parent_resource_id);
-    if (!parentResource) return Math.max(...permissions.map(p => p.id));
+  //   const parentResource = resources.find(r => r.id === resource.parent_resource_id);
+  //   if (!parentResource) return Math.max(...permissions.map(p => p.id));
 
-    const parentPermissions = resourcePermissions[parentResource.id] || [];
-    if (parentPermissions.length === 0) return 0;
+  //   const parentPermissions = resourcePermissions[parentResource.id] || [];
+  //   if (parentPermissions.length === 0) return 0;
 
-    return Math.max(...parentPermissions);
-  };
+  //   return Math.max(...parentPermissions);
+  // };
 
-  const isPermissionEnabled = (resourceId: number, permissionId: number) => {
+  const isPermissionEnabled = (resourceId: number) => {
     const resource = resources.find(r => r.id === resourceId);
     if (!resource?.parent_resource_id) return true;
 
@@ -505,7 +502,7 @@ export default function SubAccountsDashboard() {
                       required
                     />
                     <p className="text-xs text-slate-500 mt-1.5">
-                      Provide a brief description of this sub account's purpose.
+                      Provide a brief description of this sub account&apos;s purpose.
                     </p>
                   </div>
                 </div>
@@ -590,7 +587,7 @@ export default function SubAccountsDashboard() {
                                       onCheckedChange={(checked) => 
                                         handlePermissionChange(resource.id, permission.id, checked as boolean)
                                       }
-                                      disabled={!isPermissionEnabled(resource.id, permission.id)}
+                                      disabled={!isPermissionEnabled(resource.id)}
                                     />
                                     <label
                                       htmlFor={`${resource.id}-${permission.id}`}

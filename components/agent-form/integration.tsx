@@ -24,7 +24,7 @@ interface IntegrationProps {
 export function Integration({ formData, updateFormData }: IntegrationProps) {
   const dispatch = useDispatch<AppDispatch>()
   const { checkPermission } = usePermissionContext();
-  let canEditCalendar = checkPermission(12, 4);
+  const canEditCalendar = checkPermission(12, 4);
 
   useEffect(() => {
     if (formData.id) {

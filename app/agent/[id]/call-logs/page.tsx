@@ -52,7 +52,7 @@ export default function CallLogsPage() {
   const router = useRouter()
   const { id: agentId } = useParams();  
   const dispatch = useDispatch<AppDispatch>() 
-  const { logs, status } = useSelector((state: RootState) => state.callLogs)
+  const { logs, status, error } = useSelector((state: RootState) => state.callLogs)
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<{ title: string, content: JSX.Element } | null>(null);
@@ -60,8 +60,19 @@ export default function CallLogsPage() {
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
+    console.log('Fetching call logs for agent:', agentId);
     dispatch(fetchCallLogs({ agentId: Number(agentId) }))
   }, [dispatch, agentId])
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Call Logs State:', {
+      logs,
+      status,
+      error,
+      agentId
+    });
+  }, [logs, status, error, agentId]);
 
   const handleLoadMore = () => {
     if (logs.length > 0) {
@@ -80,13 +91,6 @@ export default function CallLogsPage() {
     });
     return Array.from(unique.values());
   }, [logs]);
-
-  // Debug logging
-  useEffect(() => {
-    console.log('Logs:', logs);
-    console.log('Unique Logs:', uniqueLogs);
-    console.log('Status:', status);
-  }, [logs, uniqueLogs, status]);
 
   const openModal = (title: string, content: JSX.Element) => {
     setModalContent({ title, content });
@@ -264,9 +268,13 @@ export default function CallLogsPage() {
 
           {status === 'loading' ? (
             <div className="p-4 text-center text-sm">Loading...</div>
+          ) : error ? (
+            <div className="p-4 text-center text-sm text-red-500">
+              Error: {error}
+            </div>
           ) : uniqueLogs.length > 0 ? (
             uniqueLogs.map((log) => (
-              <div key={log.call_id} className="grid grid-cols-9 gap-4 p-4 text-sm">
+              <div key={log.call_id} className="grid grid-cols-9 gap-4 p-4 text-sm border-b">
                 <div className="col-span-2">
                   <div 
                     className="truncate cursor-help" 
@@ -280,7 +288,7 @@ export default function CallLogsPage() {
                   {new Date(log.start_timestamp).toLocaleTimeString()}
                 </div>
                 <div>
-                  {log.call_type === 'phone_call' ? log.to_number || 'Unknown number' : 'Web call'}
+                  {log.call_type === 'phone_call' ? log.metadata?.to_number || 'Unknown number' : 'Web call'}
                 </div>
                 <div>
                   {renderAudioPlayer(log.recording_url)}
@@ -309,12 +317,12 @@ export default function CallLogsPage() {
                     View Cost
                   </button>
                 </div>
-                <div>{log.disconnection_reason}</div>
+                <div>{log.disconnection_reason || 'N/A'}</div>
               </div>
             ))
           ) : (
             <div className="p-4 text-gray-500 text-center">
-              {logs.length === 0 ? "No results found" : "No unique results found"}
+              No call logs found
             </div>
           )}
         </div>

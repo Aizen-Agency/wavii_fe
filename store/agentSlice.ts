@@ -3,7 +3,34 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios, { AxiosError } from 'axios';
 import axiosInstance from '@/utils/axios';
 
-interface Agent {
+interface UserRole {
+  created_at: string;
+  updated_at: string;
+  role_id: number;
+  user_id: number;
+}
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  password?: string;
+  prompt?: string | null;
+  parent_username?: string | null;
+  is_subaccount?: boolean | null;
+  stripe_customer_id?: string | null;
+  logo_url?: string | null;
+  color_scheme?: string | null;
+  login_heading?: string | null;
+  login_subheading?: string | null;
+  available_credits: number;
+  company_name: string;
+  retell_key: string;
+  user_roles: UserRole;
+  Agents?: Agent[];
+}
+
+export interface Agent {
   id: number;
   user_id: number;
   name: string;
@@ -28,7 +55,9 @@ interface Agent {
   created_at: string;
   agent_kb_ids: string[];
   cal_event_id: number;
-  outbound_phone: number;
+  outbound_phone?: number;
+  success_rate?: string;
+  User?: User;
 }
 
 interface ErrorResponse {

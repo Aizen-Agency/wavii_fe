@@ -2,6 +2,91 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import axiosInstance from '@/utils/axios';
 
+interface UserRole {
+  created_at: string;
+  updated_at: string;
+  role_id: number;
+  user_id: number;
+}
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  password?: string;
+  prompt?: string | null;
+  parent_username?: string | null;
+  is_subaccount?: boolean | null;
+  stripe_customer_id?: string | null;
+  logo_url?: string | null;
+  color_scheme?: string | null;
+  login_heading?: string | null;
+  login_subheading?: string | null;
+  available_credits: number;
+  company_name: string;
+  retell_key: string;
+  roles?: Role[];
+  Agents?: Agent[];
+}
+
+interface Role {
+  id: number;
+  name: string;
+  description: string;
+}
+
+interface Agent {
+  id: number;
+  user_id: number;
+  name: string;
+  agent_type: string;
+  main_goal: string;
+  language: string;
+  voice: string;
+  personality: string;
+  website: string;
+  prompt: string;
+  initial_message: string;
+  inbound_enabled: boolean;
+  google_calendar_id: string;
+  total_call_duration: number;
+  total_calls: number;
+  accent: string;
+  cal_key: string;
+  twilio_sid: string;
+  twilio_auth: string;
+  retell_agent_id: string;
+  retell_llm_id: string;
+  created_at: string;
+  agent_kb_ids: string[];
+  cal_event_id: number;
+  outbound_phone?: number;
+  success_rate?: string;
+  User?: User;
+}
+
+interface SubAccount {
+  id: number;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  Users: User[];
+  success_rate: string;
+  total_call_cost: string;
+  total_agents: number;
+  total_bookings: number;
+  successful_bookings: number;
+}
+
+interface AuthState {
+  token: string | null;
+  user: User | null;
+  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  error: string | null;
+  subaccounts: SubAccount[];
+}
+
 export const login = createAsyncThunk(
   'auth/login',
   async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
@@ -166,9 +251,16 @@ export const updateSubAccount = createAsyncThunk(
     // Transform the response back to our frontend format
     return {
       id: response.data.id,
-      company_name: response.data.name,
+      name: response.data.name,
       description: response.data.description,
-      created_at: response.data.created_at
+      created_at: response.data.created_at,
+      updated_at: response.data.updated_at,
+      Users: response.data.Users || [],
+      success_rate: response.data.success_rate || "",
+      total_call_cost: response.data.total_call_cost || "",
+      total_agents: response.data.total_agents || 0,
+      total_bookings: response.data.total_bookings || 0,
+      successful_bookings: response.data.successful_bookings || 0,
     };
   }
 );
@@ -192,9 +284,9 @@ const authSlice = createSlice({
     token: null,
     user: null,
     status: 'idle',
-    error: null as string | null,
-    subaccounts: [] as any[],
-  },
+    error: null,
+    subaccounts: [] as SubAccount[],
+  } as AuthState,
   reducers: {},
   extraReducers: (builder) => {
     builder

@@ -8,6 +8,7 @@ import callLogReducer from './callLogSlice';
 import phoneNumberReducer from './phoneNumberSlice';
 import twilioReducer from './twilioSlice';
 import rbacReducer from './rbacSlice';
+import metricReducer from './metricSlice';
 
 const store = configureStore({
   reducer: {
@@ -19,6 +20,7 @@ const store = configureStore({
     phoneNumbers: phoneNumberReducer,
     twilio: twilioReducer,
     rbac: rbacReducer,
+    metrics: metricReducer
   },
 });
 

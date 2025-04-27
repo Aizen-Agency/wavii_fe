@@ -46,7 +46,7 @@ export default function AgentDashboard() {
     endDate: new Date().toISOString().split('T')[0]
   });
 
-  let canViewDashboard = checkPermission(9, 2);
+  const canViewDashboard = checkPermission(9, 2);
   
 
   const fetchStats = async (startDate?: string, endDate?: string) => {
